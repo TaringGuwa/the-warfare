@@ -3,8 +3,29 @@ Changelog
 All notable changes to this project will be documented in this file.
 
 ---
+The Warfare [0.0.3] — Terrain & Gameplay Update
 
-[0.0.2] — Development Update
+Added
+
+Terrain System
+Introduced a simplified three-type terrain system:
+City / Urban
+Farm / Rural / Village
+Mountain / Forest
+Terrain-Based Road System
+Road construction is now restricted based on terrain type:
+Main Road → available only on Farm / Rural / Village terrain.
+Toll Road / Highway → available only on City / Urban terrain.
+Dirt Road → available only on Mountain / Forest terrain.
+
+Fixed
+
+Fixed an issue where insurgents could appear too early in the game, causing insurgency events to occur prematurely during the early-game phase.
+Version Status
+The Warfare v0.0.3 — Development
+This update introduces the initial terrain classification and terrain-specific road construction system, while improving early-game balance by adjusting insurgent spawning behavior.
+
+The Warfare [0.0.2] — Development Update
 
 Fixed & Improved
 
