@@ -180,9 +180,8 @@
   @keyframes brickBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-1.5px);}}
   /* terrain textures */
   .terrain-kota{background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 4px, transparent 4px 9px), repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 4px, transparent 4px 9px);}
-  .terrain-desa{background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px);background-size:9px 9px;}
+  .terrain-pertanian{background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px);background-size:9px 9px;}
   .terrain-gunung{background-image:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.08) 41%, transparent 42%), linear-gradient(115deg, transparent 60%, rgba(255,255,255,.08) 61%, transparent 62%);}
-  .terrain-dataran{}
 
   /* HUD */
   .hud{
@@ -468,11 +467,16 @@
     return {year, month, day};
   }
 
-  const TERRAIN_TIME = { kota:1, dataran:1, desa:2, gunung:3 };
-  const TERRAIN_LABEL = { kota:"Kota", dataran:"Dataran", desa:"Desa", gunung:"Gunung" };
+  // v0.0.3: peta disederhanakan jadi 3 jenis wilayah saja. "Pertanian" di
+  // sini menggantikan "Desa" + "Dataran rendah" versi sebelumnya (dianggap
+  // serupa/sama). Waktu tempuh Pertanian memakai angka "Desa" lama (2 hari)
+  // karena itu satu-satunya angka eksplisit yang pernah diberikan untuk
+  // wilayah non-kota/non-gunung di GDD.
+  const TERRAIN_TIME = { kota:1, pertanian:2, gunung:3 };
+  const TERRAIN_LABEL = { kota:"Kota", pertanian:"Pertanian", gunung:"Gunung" };
 
   // 30 wilayah: 3 baris x 10 kolom. Kolom 0-4 = pemain, 5-9 = musuh.
-  const REGION_TERRAIN_ROW = ['gunung','desa','dataran','dataran','kota','kota','dataran','dataran','desa','gunung'];
+  const REGION_TERRAIN_ROW = ['gunung','pertanian','pertanian','pertanian','kota','kota','pertanian','pertanian','pertanian','gunung'];
   const REGION_DEFS = [];
   for(let row=0; row<GRID_ROWS; row++){
     for(let col=0; col<GRID_COLS; col++){
@@ -480,20 +484,41 @@
       REGION_DEFS.push({id, terrain: REGION_TERRAIN_ROW[col]});
     }
   }
+  // Asumsi tambahan: ibu kota selalu berupa Kota, terlepas dari kolomnya.
+  REGION_DEFS[CAPITAL_PLAYER_ID].terrain = 'kota';
+  REGION_DEFS[CAPITAL_ENEMY_ID].terrain = 'kota';
 
   const CIVIL_DEF = {
     kesehatan:{label:"Pusat Kesehatan",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
     pendidikan:{label:"Pusat Pendidikan",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
     airSanitasi:{label:"Air & Sanitasi",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
     ekonomi:{label:"Pusat Ekonomi",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
-    jalanUtama:{label:"Jalan Utama",cost:40,duration:60,reducible:false,distanceScale:false,roadType:true,speedMult:0.7,roadBonus:10},
-    jalanTol:{label:"Jalan Tol",cost:80,duration:70,reducible:false,distanceScale:false,roadType:true,speedMult:0.5,roadBonus:10},
-    jalanSetapak:{label:"Jalan Setapak",cost:20,duration:40,reducible:false,distanceScale:false,roadType:true,speedMult:0.85,roadBonus:5},
+    // v0.0.3: tiap jenis jalan sekarang eksklusif untuk 1 jenis wilayah saja
+    // (tidak bisa dibangun di jenis wilayah lain).
+    jalanUtama:{label:"Jalan Utama",cost:40,duration:60,reducible:false,distanceScale:false,roadType:true,terrain:'pertanian',speedMult:0.7,roadBonus:10},
+    jalanTol:{label:"Jalan Tol",cost:80,duration:70,reducible:false,distanceScale:false,roadType:true,terrain:'kota',speedMult:0.5,roadBonus:10},
+    jalanSetapak:{label:"Jalan Setapak",cost:20,duration:40,reducible:false,distanceScale:false,roadType:true,terrain:'gunung',speedMult:0.85,roadBonus:5},
     listrik:{label:"Gardu Listrik",cost:25,duration:30,reducible:false,distanceScale:false},
     sinyal:{label:"Sinyal",cost:30,duration:40,reducible:false,support:5,distanceScale:true}
   };
   const CIVIL_ORDER = ['kesehatan','pendidikan','airSanitasi','ekonomi','jalanUtama','jalanTol','jalanSetapak','listrik','sinyal'];
   const ROAD_KEYS = ['jalanUtama','jalanTol','jalanSetapak'];
+
+  /* v0.0.3: sistem "Concern" wilayah, menggantikan trigger pemberontakan
+     instan (support=0 selama 5 hari) yang jadi bug di early game.
+     - CORE_CONCERN_KEYS: fasilitas dasar yang jadi "permintaan" wilayah.
+     - CONCERN_TRIGGER_DAYS: 6 bulan (kalender in-game 30 hari/bulan) tanpa
+       fasilitas dasar terpenuhi, DITAMBAH support < CONCERN_SUPPORT_MAX,
+       baru memicu pemberontakan.
+     - Setelah aktif: 1 fasilitas hancur di bulan ke-1, lalu menyebar ke
+       1 wilayah tetangga (milik pemain, bukan ibu kota) setiap 3 bulan
+       selama belum ditumpas.
+     - Ibu kota diasumsikan kebal dari mekanisme ini. */
+  const CORE_CONCERN_KEYS = ['kesehatan','pendidikan','airSanitasi','ekonomi'];
+  const CONCERN_TRIGGER_DAYS = 180; // 6 bulan
+  const CONCERN_SUPPORT_MAX = 25;
+  const REBELLION_DESTROY_AFTER_DAYS = 30; // 1 bulan
+  const REBELLION_SPREAD_INTERVAL_DAYS = 90; // 3 bulan
 
   const OIL_DERRICK_COST = 50, OIL_DERRICK_DUR = 60;
   const BARAK_COST = [30,30,30,30], BARAK_DUR = 60, BARAK_MAX = 4;
@@ -537,7 +562,7 @@
         garrison:0,
         supportArea:0,
         scouted: owner==='player',
-        zeroSupportDays:0,
+        concernSinceDay:null, concernType:null,
         rebellion:{active:false},
         ruinedFacilities:[],
         rebuildTimers:{}
@@ -654,10 +679,13 @@
     return state.regions.filter(r=>r.owner==='player' && r.civil.sinyal).length;
   }
   function roadBonusTotal(){
+    // v0.0.3: tiap jenis jalan cuma relevan di subset wilayah dengan
+    // terrain yang cocok (Jalan Utama->pertanian, Tol->kota, Setapak->gunung).
     let total=0;
-    const pr = state.regions.filter(r=>r.owner==='player');
     ROAD_KEYS.forEach(k=>{
-      if(pr.length>0 && pr.every(r=>r.civil[k])) total += CIVIL_DEF[k].roadBonus;
+      const def = CIVIL_DEF[k];
+      const eligible = state.regions.filter(r=>r.owner==='player' && r.terrain===def.terrain);
+      if(eligible.length>0 && eligible.every(r=>r.civil[k])) total += def.roadBonus;
     });
     return total;
   }
@@ -714,6 +742,7 @@
       const def = CIVIL_DEF[key];
       state.regions.forEach(r=>{
         if(r.owner!=='player' || r.civil[key]) return;
+        if(def.roadType && r.terrain!==def.terrain) return; // jalan eksklusif per terrain
         const d = distFromCapital(r.id);
         if(d===Infinity) return;
         let baseDur = def.duration;
@@ -795,45 +824,61 @@
       return true;
     });
 
-    // pemberontakan: pemicu
+    // pemberontakan: cek "concern" wilayah (kebutuhan fasilitas dasar
+    // yang tidak kunjung terpenuhi) -> pemicu pemberontakan
     state.regions.forEach(r=>{
-      if(r.owner!=='player') return;
+      if(r.owner!=='player' || r.isCapital) return; // ibu kota kebal
       if(!r.rebellion) r.rebellion={active:false};
-      if(r.supportArea<=0){ r.zeroSupportDays=(r.zeroSupportDays||0)+1; } else { r.zeroSupportDays=0; }
-      if(!r.rebellion.active && r.zeroSupportDays>=5){
-        r.rebellion = {active:true, since:state.day};
-        r.ruinedFacilities = r.ruinedFacilities||[];
-        log(`⚠ Pemberontakan pecah di ${regionName(r.id)}!`);
-        toast(`Pemberontakan pecah di ${regionName(r.id)}!`);
+      const missing = CORE_CONCERN_KEYS.filter(k=>!r.civil[k]);
+      if(missing.length>0){
+        if(r.concernSinceDay===null) r.concernSinceDay = state.day;
+        r.concernType = missing[0];
+        if(!r.rebellion.active && (state.day-r.concernSinceDay)>=CONCERN_TRIGGER_DAYS && r.supportArea<CONCERN_SUPPORT_MAX){
+          r.rebellion = {active:true, since:state.day, destroyedDone:false, nextSpreadDay: state.day+REBELLION_SPREAD_INTERVAL_DAYS};
+          r.ruinedFacilities = r.ruinedFacilities||[];
+          log(`⚠ Pemberontakan pecah di ${regionName(r.id)} (concern "${CIVIL_DEF[r.concernType].label}" tak terpenuhi 6 bulan).`);
+          toast(`Pemberontakan pecah di ${regionName(r.id)}!`);
+        }
+      } else {
+        r.concernSinceDay = null;
+        r.concernType = null;
       }
     });
-    // pemberontakan: menyebar & menghancurkan fasilitas
+
+    // pemberontakan: progres tiap wilayah yang sedang aktif (deterministik,
+    // bukan acak per hari lagi) -> hancurkan 1 fasilitas di bulan ke-1,
+    // lalu menyebar ke 1 tetangga tiap 3 bulan selama belum ditumpas
     state.regions.forEach(r=>{
-      if(r.owner==='player' && r.rebellion && r.rebellion.active){
-        if(Math.random()<0.2){
-          const targets = neighborIds(r.id).map(region).filter(n=>n.owner==='player' && !(n.rebellion&&n.rebellion.active));
-          if(targets.length){
-            const t = targets[Math.floor(Math.random()*targets.length)];
-            t.rebellion = {active:true, since:state.day};
-            t.ruinedFacilities = t.ruinedFacilities||[];
-            log(`Pemberontakan menyebar ke ${regionName(t.id)}.`);
-          }
+      if(r.owner!=='player' || !r.rebellion || !r.rebellion.active) return;
+      const elapsed = state.day - r.rebellion.since;
+
+      if(!r.rebellion.destroyedDone && elapsed>=REBELLION_DESTROY_AFTER_DAYS){
+        const candidates=[];
+        CIVIL_ORDER.forEach(k=>{ if(r.civil[k]) candidates.push(k); });
+        if(r.oilDerrick.built) candidates.push('oilDerrick');
+        if(r.barak.count>0) candidates.push('barak');
+        if(candidates.length){
+          const pick = candidates[Math.floor(Math.random()*candidates.length)];
+          if(pick==='oilDerrick') r.oilDerrick.built=false;
+          else if(pick==='barak') r.barak.count = Math.max(0,r.barak.count-1);
+          else r.civil[pick]=false;
+          r.ruinedFacilities = r.ruinedFacilities||[];
+          if(!r.ruinedFacilities.includes(pick)) r.ruinedFacilities.push(pick);
+          log(`Pemberontak menghancurkan fasilitas (${pick}) di ${regionName(r.id)}.`);
         }
-        if(Math.random()<0.15){
-          const candidates=[];
-          CIVIL_ORDER.forEach(k=>{ if(r.civil[k]) candidates.push(k); });
-          if(r.oilDerrick.built) candidates.push('oilDerrick');
-          if(r.barak.count>0) candidates.push('barak');
-          if(candidates.length){
-            const pick = candidates[Math.floor(Math.random()*candidates.length)];
-            if(pick==='oilDerrick') r.oilDerrick.built=false;
-            else if(pick==='barak') r.barak.count = Math.max(0,r.barak.count-1);
-            else r.civil[pick]=false;
-            r.ruinedFacilities = r.ruinedFacilities||[];
-            if(!r.ruinedFacilities.includes(pick)) r.ruinedFacilities.push(pick);
-            log(`Pemberontak menghancurkan fasilitas (${pick}) di ${regionName(r.id)}.`);
-          }
+        r.rebellion.destroyedDone = true;
+      }
+
+      if(state.day>=r.rebellion.nextSpreadDay){
+        const targets = neighborIds(r.id).map(region).filter(n=>n.owner==='player' && !n.isCapital && !(n.rebellion&&n.rebellion.active));
+        if(targets.length){
+          const t = targets[Math.floor(Math.random()*targets.length)];
+          t.rebellion = {active:true, since:state.day, destroyedDone:false, nextSpreadDay: state.day+REBELLION_SPREAD_INTERVAL_DAYS};
+          t.ruinedFacilities = t.ruinedFacilities||[];
+          log(`Pemberontakan menyebar ke ${regionName(t.id)}.`);
+          toast(`Pemberontakan menyebar ke ${regionName(t.id)}!`);
         }
+        r.rebellion.nextSpreadDay = state.day+REBELLION_SPREAD_INTERVAL_DAYS;
       }
     });
 
@@ -1151,6 +1196,7 @@
     const success = Math.random()<0.7;
     if(success){
       t.rebellion = {active:false};
+      t.concernSinceDay = state.day; // masa tenang: mulai hitung 6 bulan lagi dari 0
       (t.ruinedFacilities||[]).forEach(key=>{
         const baseDur = key==='oilDerrick' ? OIL_DERRICK_DUR : (key==='barak' ? BARAK_DUR : (CIVIL_DEF[key]?CIVIL_DEF[key].duration:14));
         t.rebuildTimers = t.rebuildTimers||{};
@@ -1289,15 +1335,18 @@
         const item = document.createElement('div'); item.className='build-item';
         let status = 'Belum dibeli';
         let pct = 0;
+        const eligibleRegions = def.roadType
+          ? state.regions.filter(r=>r.owner==='player' && r.terrain===def.terrain)
+          : state.regions.filter(r=>r.owner==='player');
         if(proj){
-          const done = state.regions.filter(r=>r.owner==='player'&&r.civil[key]).length;
-          const total = state.regions.filter(r=>r.owner==='player').length;
-          status = done>=total ? 'Selesai di semua wilayah' : `Menyebar: ${done}/${total} wilayah`;
+          const done = eligibleRegions.filter(r=>r.civil[key]).length;
+          const total = eligibleRegions.length;
+          status = total>0 && done>=total ? 'Selesai di semua wilayah terkait' : `Menyebar: ${done}/${total} wilayah`;
           pct = total? (done/total*100):0;
         }
         item.innerHTML = `
           <div class="build-item__row">
-            <div><div class="build-item__name">${def.label}</div><div class="build-item__meta">Biaya $${effectiveCost(def.cost).toFixed(2)} • Durasi dasar ${def.duration} hari${def.distanceScale?' (+15%/wilayah dari ibu kota)':''}</div></div>
+            <div><div class="build-item__name">${def.label}</div><div class="build-item__meta">Biaya $${effectiveCost(def.cost).toFixed(2)} • Durasi dasar ${def.duration} hari${def.distanceScale?' (+15%/wilayah dari ibu kota)':''}${def.roadType?` • Hanya wilayah ${TERRAIN_LABEL[def.terrain]}`:''}</div></div>
             <button class="btn btn--sm ${proj?'':'btn--primary'}" ${proj?'disabled':''}>${proj?'Dibeli':'Bangun'}</button>
           </div>
           <div class="build-item__status">${status}</div>
@@ -1480,6 +1529,13 @@
 
     if(r.owner==='player'){
       body.appendChild(statRow('Support Area', r.supportArea.toFixed(0)+'%'));
+      if(r.isCapital){
+        body.appendChild(statRow('Concern', 'Ibu kota kebal pemberontakan'));
+      } else if(r.concernSinceDay!==null){
+        const remain = Math.max(0, CONCERN_TRIGGER_DAYS - (state.day-r.concernSinceDay));
+        const risky = r.supportArea<CONCERN_SUPPORT_MAX;
+        body.appendChild(statRow('Concern', `Minta ${CIVIL_DEF[r.concernType].label}${remain>0?` • ${remain} hari lagi berisiko`:(risky?' • BERISIKO SEKARANG':' • aman (support cukup)')}`));
+      }
       body.appendChild(statRow('Pajak/hari', taxOf(r).toFixed(2)));
       body.appendChild(statRow('Oil/hari', oilOf(r)));
       body.appendChild(statRow('Oil Derrick', r.oilDerrick.built?'Selesai':(r.oilDerrick.completeDay!==null?'Dibangun...':'Belum ada')));
