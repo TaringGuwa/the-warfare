@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Warfare — Prototype v0.0.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#12160F;
+    --panel:#1C221749;
+    --panel-solid:#1D2318;
+    --panel-2:#262E1F;
+    --line:#3B4530;
+    --line-soft:#2A3323;
+    --ink:#E9E4D2;
+    --ink-dim:#9CA089;
+    --ink-faint:#666B57;
+    --player:#6E8F4F;
+    --player-strong:#93C25F;
+    --player-deep:#3B4E2B;
+    --enemy:#8B3E36;
+    --enemy-strong:#C25A4A;
+    --enemy-deep:#4A241F;
+    --brass:#C9A227;
+    --brass-strong:#E4BE45;
+    --danger:#C24B3F;
+    --rebel:#D98A2B;
+    --shadow: 0 8px 24px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--void);
+    color:var(--ink);
+    font-family:'Oswald',"Segoe UI",Arial,sans-serif;
+    font-weight:300;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .mono{font-family:'JetBrains Mono',Consolas,monospace;}
+  .hidden{display:none !important;}
+  button{font-family:inherit;cursor:pointer;}
+  input[type=number]{font-family:inherit;}
+
+  /* ---------- generic buttons ---------- */
+  .btn{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 16px;
+    font-size:14px;
+    letter-spacing:.03em;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .btn:hover:not(:disabled){border-color:var(--brass);}
+  .btn:disabled{opacity:.35;cursor:not-allowed;}
+  .btn--primary{background:var(--brass);border-color:var(--brass);color:#1a1608;font-weight:500;}
+  .btn--primary:hover:not(:disabled){background:var(--brass-strong);}
+  .btn--danger{border-color:var(--enemy);}
+  .btn--danger:hover:not(:disabled){background:var(--enemy-deep);}
+  .btn--block{width:100%;}
+  .btn--sm{padding:6px 10px;font-size:12px;}
+
+  /* ---------- screens ---------- */
+  .screen{
+    position:fixed;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 30%, #1b2015 0%, var(--void) 70%);
+  }
+  .brandline{
+    position:absolute;top:28px;left:50%;transform:translateX(-50%);
+    text-align:center;
+  }
+  .brandline h1{
+    margin:0;font-size:15px;letter-spacing:.35em;font-weight:500;color:var(--ink-dim);
+  }
+  .brandline .sub{font-size:11px;color:var(--ink-faint);letter-spacing:.2em;margin-top:4px;}
+
+  .menu-col{display:flex;flex-direction:column;gap:14px;width:min(320px,80vw);}
+  .menu-title{
+    font-size:56px;font-weight:600;letter-spacing:.04em;margin:0 0 6px 0;text-align:center;
+    color:var(--ink);
+  }
+  .menu-title .accent{color:var(--brass);}
+  .menu-btn{
+    background:transparent;border:1px solid var(--line);color:var(--ink);
+    padding:16px;font-size:16px;letter-spacing:.15em;text-align:left;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .menu-btn:hover{border-color:var(--brass);color:var(--brass-strong);}
+  .menu-btn .arrow{opacity:.5;}
+
+  .pick-grid{display:flex;flex-direction:column;gap:12px;width:min(420px,86vw);}
+  .pick-card{
+    border:1px solid var(--line);padding:18px;display:flex;justify-content:space-between;align-items:center;gap:12px;
+    background:var(--panel-solid);
+  }
+  .pick-card:hover{border-color:var(--brass);}
+  .pick-card.locked{opacity:.35;}
+  .pick-card h3{margin:0 0 4px 0;font-size:18px;font-weight:500;letter-spacing:.05em;}
+  .pick-card p{margin:0;font-size:12px;color:var(--ink-dim);}
+  .back-link{
+    position:absolute;top:26px;left:26px;background:none;border:none;color:var(--ink-dim);
+    font-size:13px;letter-spacing:.1em;
+  }
+  .back-link:hover{color:var(--brass);}
+
+  /* ---------- game screen ---------- */
+  #screen-game{display:none;background:var(--void);}
+  #screen-game.active{display:block;}
+  .map-wrap{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    padding:56px 16px 76px;
+  }
+  .map-grid{
+    display:grid;
+    grid-template-columns:repeat(10, minmax(28px,66px));
+    grid-template-rows:repeat(3, minmax(26px,58px));
+    gap:4px;
+    width:100%;
+    max-width:980px;
+  }
+  .region{
+    position:relative;
+    border:1px solid var(--line-soft);
+    background-color:var(--player-deep);
+    display:flex;align-items:flex-end;justify-content:flex-start;
+    padding:3px;
+    font-size:8px;letter-spacing:.03em;color:var(--ink-dim);
+    transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  .region:hover{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass) inset;cursor:pointer;}
+  .region--enemy{background-color:var(--enemy-deep);}
+  .region--front{outline:1px dashed var(--brass);outline-offset:-3px;animation:frontPulse 1.6s ease-in-out infinite;}
+  @keyframes frontPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(194,75,63,0);}
+    50%{box-shadow:0 0 6px 2px rgba(194,75,63,.55);}
+  }
+  .region--capital::after{
+    content:"★";position:absolute;top:2px;right:4px;font-size:9px;color:var(--brass-strong);
+  }
+  .region--fog{background-color:#1a1c17;color:var(--ink-faint);}
+  .region--fog .region-terrain-tag{display:none;}
+  .region-terrain-tag{position:absolute;top:2px;left:4px;font-size:7px;color:var(--ink-faint);}
+  .region--rebel{box-shadow:0 0 0 2px var(--rebel) inset;animation:rebelPulse 1s ease-in-out infinite;}
+  @keyframes rebelPulse{
+    0%,100%{filter:brightness(1);}
+    50%{filter:brightness(1.35);}
+  }
+  .region.capture-flash{animation:captureFlash .9s ease;}
+  @keyframes captureFlash{
+    0%{filter:brightness(2.2) saturate(2);}
+    100%{filter:none;}
+  }
+  .region.jet-strike::before{
+    content:"✈💥";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:14px;animation:jetPop .7s ease forwards;pointer-events:none;
+  }
+  @keyframes jetPop{
+    0%{opacity:0;transform:scale(.4);}
+    40%{opacity:1;transform:scale(1.25);}
+    100%{opacity:0;transform:scale(1);}
+  }
+  .troop-dot{
+    position:absolute;width:7px;height:7px;border-radius:50%;
+    background:var(--player-strong);box-shadow:0 0 5px var(--player-strong);
+    z-index:30;pointer-events:none;
+  }
+  .brick-stack{position:absolute;bottom:1px;right:1px;display:flex;flex-direction:column-reverse;gap:1px;z-index:2;}
+  .brick{width:10px;height:3px;background:var(--brass);border:1px solid var(--brass-strong);opacity:0;
+    animation:brickPop .5s ease forwards, brickBob 1.4s ease-in-out infinite .5s;}
+  @keyframes brickPop{
+    0%{opacity:0;transform:translateY(5px) scale(.8);}
+    60%{opacity:1;transform:translateY(-1px) scale(1.05);}
+    100%{opacity:1;transform:translateY(0) scale(1);}
+  }
+  @keyframes brickBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-1.5px);}}
+  /* terrain textures */
+  .terrain-kota{background-image:repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 4px, transparent 4px 9px), repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 4px, transparent 4px 9px);}
+  .terrain-desa{background-image:radial-gradient(rgba(255,255,255,.10) 1px, transparent 1.2px);background-size:9px 9px;}
+  .terrain-gunung{background-image:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.08) 41%, transparent 42%), linear-gradient(115deg, transparent 60%, rgba(255,255,255,.08) 61%, transparent 62%);}
+  .terrain-dataran{}
+
+  /* HUD */
+  .hud{
+    position:absolute;bottom:14px;right:14px;
+    display:flex;gap:8px;background:var(--panel-solid);border:1px solid var(--line);
+    padding:8px 12px;box-shadow:var(--shadow);flex-wrap:wrap;max-width:min(94vw,520px);justify-content:flex-end;
+  }
+  .hud-item{display:flex;flex-direction:column;align-items:flex-end;min-width:56px;}
+  .hud-item .lbl{font-size:8px;letter-spacing:.13em;color:var(--ink-faint);}
+  .hud-item .val{font-size:14px;color:var(--brass-strong);}
+  .hud-item .val.money{color:var(--player-strong);}
+  .hud-item .val.warn{color:var(--danger);}
+
+  .menu-toggle{
+    position:absolute;bottom:14px;left:14px;
+    background:var(--panel-solid);border:1px solid var(--line);color:var(--ink);
+    padding:11px 16px;font-size:12px;letter-spacing:.13em;box-shadow:var(--shadow);
+  }
+  .menu-toggle:hover{border-color:var(--brass);color:var(--brass-strong);}
+
+  .top-bar{
+    position:absolute;top:0;left:0;right:0;
+    display:flex;justify-content:space-between;align-items:center;
+    padding:10px 14px;font-size:10px;letter-spacing:.13em;color:var(--ink-faint);
+  }
+  .top-bar .day{color:var(--ink-dim);}
+
+  /* log feed */
+  .log-feed{
+    position:absolute;top:40px;left:14px;width:min(260px,58vw);
+    display:flex;flex-direction:column-reverse;gap:4px;
+    max-height:140px;overflow:hidden;pointer-events:none;
+  }
+  .log-line{font-size:10px;color:var(--ink-dim);background:rgba(0,0,0,.35);padding:3px 7px;border-left:2px solid var(--brass);}
+
+  /* overlay panels */
+  .overlay{
+    position:absolute;inset:0;background:rgba(6,7,4,.55);display:flex;align-items:flex-end;justify-content:center;
+    z-index:20;
+  }
+  @media (min-width:720px){
+    .overlay{align-items:center;}
+  }
+  .panel{
+    background:var(--panel-solid);border:1px solid var(--line);width:100%;max-width:560px;
+    max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--shadow);
+  }
+  .panel-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+  }
+  .panel-head h2{margin:0;font-size:16px;letter-spacing:.1em;font-weight:500;}
+  .panel-close{background:none;border:none;color:var(--ink-dim);font-size:20px;line-height:1;padding:2px 6px;}
+  .panel-close:hover{color:var(--enemy-strong);}
+  .tab-bar{display:flex;border-bottom:1px solid var(--line);}
+  .tab-btn{
+    flex:1;background:none;border:none;color:var(--ink-dim);padding:12px 4px;font-size:11px;letter-spacing:.08em;
+    border-bottom:2px solid transparent;
+  }
+  .tab-btn.active{color:var(--brass-strong);border-bottom-color:var(--brass);}
+  .panel-body{overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;}
+
+  .build-item{border:1px solid var(--line-soft);padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+  .build-item__row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .build-item__name{font-size:13px;letter-spacing:.03em;}
+  .build-item__meta{font-size:10px;color:var(--ink-faint);}
+  .build-item__status{font-size:10px;color:var(--player-strong);}
+  .progress{height:4px;background:var(--line-soft);width:100%;margin-top:2px;}
+  .progress > span{display:block;height:100%;background:var(--brass);}
+
+  .section-label{font-size:11px;letter-spacing:.18em;color:var(--ink-faint);margin:6px 0 -2px;}
+  .region-info-name{font-size:18px;font-weight:500;letter-spacing:.05em;}
+  .region-info-sub{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  .stat-row{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-dim);padding:4px 0;border-bottom:1px solid var(--line-soft);}
+  .stat-row b{color:var(--ink);}
+  .balance-bar{height:10px;width:100%;background:var(--enemy);position:relative;overflow:hidden;margin:6px 0;}
+  .balance-bar > span{display:block;height:100%;background:var(--player);}
+  .inline-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  select{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);padding:8px;font-family:inherit;font-size:12px;flex:1;}
+
+  .toast-wrap{position:absolute;top:16px;left:50%;transform:translateX(-50%);z-index:40;display:flex;flex-direction:column;gap:6px;align-items:center;}
+  .toast{background:var(--brass);color:#1a1608;padding:8px 16px;font-size:12px;letter-spacing:.06em;box-shadow:var(--shadow);}
+
+  .win-box{max-width:420px;text-align:center;padding:40px;border:1px solid var(--brass);background:var(--panel-solid);}
+  .win-box h2{font-size:28px;color:var(--brass-strong);letter-spacing:.1em;margin:0 0 12px;}
+  .win-box p{color:var(--ink-dim);font-size:13px;margin-bottom:20px;}
+
+  /* ---------- orientation lock (FIX #3: horizontal) ---------- */
+  .orientation-lock{
+    display:none;position:fixed;inset:0;z-index:999;background:var(--void);color:var(--ink);
+    align-items:center;justify-content:center;text-align:center;padding:24px;
+    font-size:14px;letter-spacing:.05em;line-height:1.7;
+  }
+  .orientation-lock .icon{font-size:32px;display:block;margin-bottom:10px;}
+  @media (orientation:portrait) and (max-width:900px){
+    .orientation-lock{display:flex;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="orientation-lock" id="orientation-lock">
+    <div><span class="icon">🔄</span>Putar perangkat Anda ke mode LANSKAP (horizontal)<br>untuk memainkan The Warfare.</div>
+  </div>
+
+  <!-- ================= MAIN MENU ================= -->
+  <div class="screen" id="screen-menu">
+    <div class="brandline"><h1>THE <span style="color:var(--brass)">WARFARE</span></h1><div class="sub">RTS PROTOTYPE — v0.0.2</div></div>
+    <div class="menu-col">
+      <div class="menu-title">WAR<span class="accent">FARE</span></div>
+      <button class="menu-btn" id="btn-start">START <span class="arrow">›</span></button>
+      <button class="menu-btn" id="btn-option">OPTION <span class="arrow">›</span></button>
+    </div>
+  </div>
+
+  <!-- ================= CHOOSE COUNTRY ================= -->
+  <div class="screen hidden" id="screen-country">
+    <button class="back-link" data-back="screen-menu">‹ KEMBALI</button>
+    <div class="pick-grid">
+      <div class="section-label" style="text-align:center;">CHOOSE YOUR COUNTRY</div>
+      <div class="pick-card" id="pick-usa">
+        <div><h3>Amerika</h3><p>Satu-satunya negara yang tersedia saat ini.</p></div>
+        <span class="arrow" style="color:var(--brass)">›</span>
+      </div>
+      <div class="pick-card locked"><div><h3>??? </h3><p>Belum tersedia.</p></div></div>
+      <div class="pick-card locked"><div><h3>??? </h3><p>Belum tersedia.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ================= CHOOSE MAP ================= -->
+  <div class="screen hidden" id="screen-map">
+    <button class="back-link" data-back="screen-country">‹ KEMBALI</button>
+    <div class="pick-grid">
+      <div class="section-label" style="text-align:center;">CHOOSE YOUR MAP</div>
+      <div class="pick-card" id="pick-plain">
+        <div><h3>The Plain</h3><p>30 wilayah (15 vs 15). Dataran terbuka dengan sedikit pegunungan di kedua sisi.</p></div>
+        <span class="arrow" style="color:var(--brass)">›</span>
+      </div>
+      <div class="pick-card locked"><div><h3>??? </h3><p>Belum tersedia.</p></div></div>
+    </div>
+  </div>
+
+  <!-- ================= OPTION (placeholder) ================= -->
+  <div class="screen hidden" id="screen-option">
+    <button class="back-link" data-back="screen-menu">‹ KEMBALI</button>
+    <div class="pick-grid">
+      <div class="section-label" style="text-align:center;">OPTION</div>
+      <p style="text-align:center;color:var(--ink-dim);font-size:12px;">Belum ada pengaturan di prototype ini.</p>
+    </div>
+  </div>
+
+  <!-- ================= GAME SCREEN ================= -->
+  <div class="screen" id="screen-game" style="align-items:stretch;justify-content:stretch;">
+    <div class="top-bar">
+      <div>THE PLAIN — <span id="hud-owner">AMERIKA</span></div>
+      <div class="day mono"><span id="hud-date">1 Januari 2000</span> · HARI KE-<span id="hud-day">0</span></div>
+    </div>
+
+    <div class="log-feed" id="log-feed"></div>
+
+    <div class="map-wrap" id="map-wrap">
+      <div class="map-grid" id="map-grid"></div>
+    </div>
+
+    <button class="menu-toggle" id="btn-open-build">☰ PERMAINAN</button>
+
+    <div class="hud">
+      <div class="hud-item"><span class="lbl">WAKTU</span><span class="val mono" id="hud-time">00:00</span></div>
+      <div class="hud-item"><span class="lbl">MINYAK</span><span class="val mono" id="hud-oil">0</span></div>
+      <div class="hud-item"><span class="lbl">UANG</span><span class="val mono money" id="hud-money">$0</span></div>
+      <div class="hud-item"><span class="lbl">KORUPSI</span><span class="val mono warn" id="hud-corruption">0%</span></div>
+      <div class="hud-item"><span class="lbl">INFLASI</span><span class="val mono warn" id="hud-inflation">0%</span></div>
+    </div>
+  </div>
+
+  <!-- ================= BUILD PANEL ================= -->
+  <div class="overlay hidden" id="overlay-build">
+    <div class="panel">
+      <div class="panel-head"><h2>PERMAINAN</h2><button class="panel-close" data-close="overlay-build">×</button></div>
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="civil">PEMBANGUNAN</button>
+        <button class="tab-btn" data-tab="military">MILITER</button>
+        <button class="tab-btn" data-tab="negara">NEGARA</button>
+      </div>
+      <div class="panel-body" id="build-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= REGION INFO PANEL ================= -->
+  <div class="overlay hidden" id="overlay-region">
+    <div class="panel">
+      <div class="panel-head"><h2 id="region-panel-title">WILAYAH</h2><button class="panel-close" data-close="overlay-region">×</button></div>
+      <div class="panel-body" id="region-body"></div>
+    </div>
+  </div>
+
+  <!-- ================= WIN SCREEN ================= -->
+  <div class="overlay hidden" id="overlay-win">
+    <div class="win-box">
+      <h2>KEMENANGAN</h2>
+      <p id="win-text">Ibu kota musuh berhasil direbut. Amerika menguasai seluruh medan perang.</p>
+      <button class="btn btn--primary" onclick="location.reload()">MAIN LAGI</button>
+    </div>
+  </div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ============================================================
+     ASUMSI DESAIN v0.0.2 (belum disebutkan eksplisit di brief,
+     ditandai agar mudah dikoreksi nanti):
+
+     - Kalender: 1 bulan = 30 hari, 1 tahun = 360 hari (12x30).
+       Disederhanakan agar mudah dihitung; bisa diganti ke
+       kalender asli (28-31 hari/bulan) kalau dibutuhkan.
+     - Peta sekarang 3 baris x 10 kolom = 30 wilayah (15 vs 15).
+       Ibu kota diletakkan di baris tengah, di ujung wilayah
+       masing-masing (id 10 untuk pemain, id 19 untuk musuh).
+     - "Durasi +15%/wilayah menjauhi ibu kota" bersifat
+       MULTIPLIKATIF dari durasi dasar, HANYA untuk 5 bangunan
+       yang disebutkan eksplisit (kesehatan, pendidikan, air &
+       sanitasi, ekonomi, sinyal). Jalan & Gardu Listrik TIDAK
+       disebutkan skalanya, jadi tetap pakai mekanisme lama
+       (offset jarak-dalam-hari + durasi dasar).
+     - 3 jenis jalan diberi efek berbeda karena brief hanya
+       memberi biaya/durasi, bukan efeknya:
+         Jalan Utama  -> potong waktu tempuh jadi x0.7, kontribusi
+                         Support Area +10% (jika SELURUH wilayah
+                         kita sudah punya jenis ini)
+         Jalan Tol    -> potong waktu tempuh jadi x0.5, +10% Support
+         Jalan Setapak-> potong waktu tempuh jadi x0.85, +5% Support
+       (total tetap +25% seperti v0.0.1 kalau ketiganya lengkap
+       di semua wilayah). Diskon 25% durasi bangunan kesehatan
+       dkk tetap berlaku jika SALAH SATU jenis jalan sudah ada
+       di wilayah itu.
+     - Pabrik Tank (disebut di brief tapi belum ada detail di
+       GDD v0.0.1) ditambahkan mengikuti pola pabrik militer
+       lain: biaya 30, durasi 60 hari, asumsi maksimal 1 unit
+       pabrik (nasional). Unit Tank: biaya 30 + 50 oil, 30 hari.
+     - Anti Udara TIDAK termasuk grup "pabrik militer" yang
+       direvisi (poin A.9 hanya menyebut barak, pabrik tank,
+       pabrik pesawat, pusat pengintai, pabrik misil) -> biaya
+       & durasinya tetap yang lama (20 / 20 hari).
+     - Drone: diperbaiki agar juga mensyaratkan Pabrik Pesawat
+       (bukan cuma Pusat Pengintai), sesuai GDD asli yang bilang
+       drone "diproduksi di Pabrik Pesawat".
+     - Sistem lokasi unit: v0.0.1 tidak punya sistem posisi untuk
+       Jet/Tank/Misil/Drone (hanya infantri berbasis garnisun per
+       wilayah). Supaya biaya oil "per wilayah dilewati" (poin B.4)
+       tetap punya efek nyata, unit non-infantri dianggap
+       bermarkas di ibu kota dan bisa dikirim sebagai dukungan ke
+       satu front tertentu (biaya oil = rate x jarak dari ibu kota).
+       ini bukan sistem posisi penuh — silakan jadikan fitur
+       tersendiri di v0.0.3 kalau butuh unit yang benar-benar
+       bergerak & menetap di wilayah manapun.
+     - Biaya Outreach tidak disebutkan di brief -> diisi $25
+       sebagai asumsi awal.
+     - Advance AI CPU: musuh sekarang (1) punya peluang harian
+       memperkuat front-nya (menaikkan "enemyExtra"), dan (2) bisa
+       balik menyerbu & merebut wilayah kita jika kekuatan kita di
+       front itu sangat lemah (<=15%). Musuh TIDAK PERNAH merebut
+       ibu kota kita (mencegah state game-over yang belum ada
+       aturan kalahnya, sesuai to-do GDD asli). Ini masih AI dasar,
+       bukan AI penuh.
+     - Pemberontakan otomatis pecah jika Support Area sebuah
+       wilayah kita = 0% selama 5 hari berturut-turut. Definisi
+       "5 hari" adalah asumsi karena brief tidak memberi angka.
+     - Rush & serangan udara sekarang butuh oil logistik
+       (dihitung dari jarak wilayah tsb ke ibu kota) selain
+       konsumsi unit yang sudah ada sebelumnya.
+     ============================================================ */
+
+  const GRID_COLS = 10, GRID_ROWS = 3;
+  const CAPITAL_PLAYER_ID = 10, CAPITAL_ENEMY_ID = 19;
+
+  const MONTH_NAMES = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  function dateOf(totalDay){
+    const year = 2000 + Math.floor(totalDay/360);
+    const rem = totalDay % 360;
+    const month = Math.floor(rem/30);
+    const day = (rem % 30) + 1;
+    return {year, month, day};
+  }
+
+  const TERRAIN_TIME = { kota:1, dataran:1, desa:2, gunung:3 };
+  const TERRAIN_LABEL = { kota:"Kota", dataran:"Dataran", desa:"Desa", gunung:"Gunung" };
+
+  // 30 wilayah: 3 baris x 10 kolom. Kolom 0-4 = pemain, 5-9 = musuh.
+  const REGION_TERRAIN_ROW = ['gunung','desa','dataran','dataran','kota','kota','dataran','dataran','desa','gunung'];
+  const REGION_DEFS = [];
+  for(let row=0; row<GRID_ROWS; row++){
+    for(let col=0; col<GRID_COLS; col++){
+      const id = row*GRID_COLS+col;
+      REGION_DEFS.push({id, terrain: REGION_TERRAIN_ROW[col]});
+    }
+  }
+
+  const CIVIL_DEF = {
+    kesehatan:{label:"Pusat Kesehatan",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
+    pendidikan:{label:"Pusat Pendidikan",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
+    airSanitasi:{label:"Air & Sanitasi",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
+    ekonomi:{label:"Pusat Ekonomi",cost:20,duration:30,reducible:true,support:5,distanceScale:true},
+    jalanUtama:{label:"Jalan Utama",cost:40,duration:60,reducible:false,distanceScale:false,roadType:true,speedMult:0.7,roadBonus:10},
+    jalanTol:{label:"Jalan Tol",cost:80,duration:70,reducible:false,distanceScale:false,roadType:true,speedMult:0.5,roadBonus:10},
+    jalanSetapak:{label:"Jalan Setapak",cost:20,duration:40,reducible:false,distanceScale:false,roadType:true,speedMult:0.85,roadBonus:5},
+    listrik:{label:"Gardu Listrik",cost:25,duration:30,reducible:false,distanceScale:false},
+    sinyal:{label:"Sinyal",cost:30,duration:40,reducible:false,support:5,distanceScale:true}
+  };
+  const CIVIL_ORDER = ['kesehatan','pendidikan','airSanitasi','ekonomi','jalanUtama','jalanTol','jalanSetapak','listrik','sinyal'];
+  const ROAD_KEYS = ['jalanUtama','jalanTol','jalanSetapak'];
+
+  const OIL_DERRICK_COST = 50, OIL_DERRICK_DUR = 60;
+  const BARAK_COST = [30,30,30,30], BARAK_DUR = 60, BARAK_MAX = 4;
+  const TRAIN_COST_OIL = 5, TRAIN_DUR = 30;
+
+  const NATIONAL_MIL = {
+    pabrikPesawat:{label:"Pabrik Pesawat",cost:[30,30],dur:60,max:2},
+    pabrikMisil:{label:"Pabrik Misil",cost:[30],dur:60,max:1},
+    antiUdara:{label:"Anti Udara",cost:[20],dur:20,max:1},
+    pusatPengintai:{label:"Pusat Pengintai",cost:[30],dur:60,max:1},
+    pabrikTank:{label:"Pabrik Tank",cost:[30],dur:60,max:1}
+  };
+
+  const UNIT_DEF = {
+    jet:{label:"Jet",cost:30,dur:30,needs:'pabrikPesawat',max:Infinity,oil:100},
+    pengangkut:{label:"Pesawat Pengangkut",cost:30,dur:30,needs:'pabrikPesawat',max:2,oil:100},
+    tank:{label:"Tank",cost:30,dur:30,needs:'pabrikTank',max:Infinity,oil:50},
+    misilSerang:{label:"Misil Serang",cost:30,dur:30,needs:'pabrikMisil',max:Infinity,oil:500},
+    misilPertahanan:{label:"Misil Pertahanan",cost:30,dur:30,needs:'antiUdara',alsoNeeds:'pabrikMisil',max:Infinity,oil:500},
+    pengintai:{label:"Pengintai (Scout)",cost:30,dur:30,needs:'pusatPengintai',max:4,oil:0},
+    drone:{label:"Drone",cost:30,dur:30,needs:'pusatPengintai',alsoNeeds:'pabrikPesawat',max:1,oil:200}
+  };
+
+  const MOVE_OIL_RATE = { infantri:10, pesawat:20, tank:15, misil:40 };
+  const SUPPORT_CONTRIBUTION = { jet:0.5, tank:0.5, misilSerang:1, misilPertahanan:0.5 };
+
+  /* ---------------- state ---------------- */
+  let state = null;
+
+  function freshState(){
+    const regions = REGION_DEFS.map(d=>{
+      const row = Math.floor(d.id/GRID_COLS), col = d.id%GRID_COLS;
+      const owner = col<5 ? 'player':'enemy';
+      return {
+        id:d.id, row, col, terrain:d.terrain, owner,
+        isCapital: (d.id===CAPITAL_PLAYER_ID || d.id===CAPITAL_ENEMY_ID),
+        civil:{kesehatan:false,pendidikan:false,airSanitasi:false,ekonomi:false,jalanUtama:false,jalanTol:false,jalanSetapak:false,listrik:false,sinyal:false},
+        oilDerrick:{built:false,completeDay:null},
+        barak:{count:0,completeDay:null},
+        trainCompleteDay:null,
+        garrison:0,
+        supportArea:0,
+        scouted: owner==='player',
+        zeroSupportDays:0,
+        rebellion:{active:false},
+        ruinedFacilities:[],
+        rebuildTimers:{}
+      };
+    });
+    return {
+      day:0, money:50, oil:0,
+      corruption:0, inflation:0, antiKorupsiLevel:0, outreachLevel:0,
+      regions,
+      civilProjects:{},
+      militaryBuilt:{pabrikPesawat:0,pabrikMisil:0,antiUdara:0,pusatPengintai:0,pabrikTank:0},
+      militaryQueue:[],
+      unitQueue:[],
+      units:{jet:0,pengangkut:0,tank:0,misilSerang:0,misilPertahanan:0,pengintai:0,drone:0},
+      droneCooldownUntil:0,
+      droneScanMode:false, droneScanRemaining:0,
+      inTransit:[],
+      fronts:{},
+      regionsLostToEnemy:0,
+      selectedRegionId:null,
+      log:[]
+    };
+  }
+
+  /* ---------------- graph helpers ---------------- */
+  function neighborIds(id){
+    const row=Math.floor(id/GRID_COLS), col=id%GRID_COLS, res=[];
+    if(col>0) res.push(row*GRID_COLS+(col-1));
+    if(col<GRID_COLS-1) res.push(row*GRID_COLS+(col+1));
+    if(row>0) res.push((row-1)*GRID_COLS+col);
+    if(row<GRID_ROWS-1) res.push((row+1)*GRID_COLS+col);
+    return res;
+  }
+  function region(id){ return state.regions[id]; }
+
+  function isFrontLine(id){
+    const r = region(id);
+    return neighborIds(id).some(n=>region(n).owner!==r.owner);
+  }
+  function enemyBorderCount(id){ return neighborIds(id).filter(n=>region(n).owner==='enemy').length; }
+  function playerBorderCount(id){ return neighborIds(id).filter(n=>region(n).owner==='player').length; }
+
+  function distFromCapital(id){
+    const start=CAPITAL_PLAYER_ID;
+    if(region(id).owner!=='player') return Infinity;
+    const seen=new Set([start]); let frontier=[start]; let dist=0;
+    if(id===start) return 0;
+    while(frontier.length){
+      const next=[];
+      for(const f of frontier){
+        for(const n of neighborIds(f)){
+          if(region(n).owner==='player' && !seen.has(n)){
+            seen.add(n);
+            if(n===id) return dist+1;
+            next.push(n);
+          }
+        }
+      }
+      frontier=next; dist++;
+      if(dist>40) break;
+    }
+    return Infinity;
+  }
+
+  function hopsBetween(fromId, toId){
+    if(fromId===toId) return 0;
+    const dist={}; dist[fromId]=0;
+    const queue=[fromId]; const seen=new Set([fromId]);
+    while(queue.length){
+      const u=queue.shift();
+      if(u===toId) return dist[u];
+      for(const n of neighborIds(u)){
+        if(region(n).owner==='player' && !seen.has(n)){
+          seen.add(n); dist[n]=dist[u]+1; queue.push(n);
+        }
+      }
+    }
+    return Infinity;
+  }
+
+  function dijkstraTime(fromId,toId){
+    const dist = {}; dist[fromId]=0;
+    const visited = new Set();
+    const pq = [[0,fromId]];
+    while(pq.length){
+      pq.sort((a,b)=>a[0]-b[0]);
+      const [d,u] = pq.shift();
+      if(visited.has(u)) continue;
+      visited.add(u);
+      if(u===toId) return d;
+      for(const n of neighborIds(u)){
+        const rn = region(n);
+        if(rn.owner!=='player') continue;
+        let t = TERRAIN_TIME[rn.terrain];
+        let mult = 1;
+        ROAD_KEYS.forEach(k=>{ if(rn.civil[k]) mult = Math.min(mult, CIVIL_DEF[k].speedMult); });
+        t = t*mult;
+        const nd = d + t;
+        if(dist[n]===undefined || nd<dist[n]){ dist[n]=nd; pq.push([nd,n]); }
+      }
+    }
+    return Infinity;
+  }
+
+  /* ---------------- economy helpers ---------------- */
+  function bumpCorruption(){ state.corruption = Math.min(500, state.corruption+5); }
+  function bumpInflation(){ state.inflation = Math.min(500, state.inflation+5); }
+  function effectiveCost(base){ return Math.round(base*(1+state.inflation/100)*100)/100; }
+  function outreachMultiplier(){ return Math.pow(0.95, state.outreachLevel||0); }
+  function effectiveDuration(base){ return Math.max(1, Math.round(base*outreachMultiplier())); }
+
+  /* ---------------- support / tax / oil ---------------- */
+  function countPlayerRegionsWithSinyal(){
+    return state.regions.filter(r=>r.owner==='player' && r.civil.sinyal).length;
+  }
+  function roadBonusTotal(){
+    let total=0;
+    const pr = state.regions.filter(r=>r.owner==='player');
+    ROAD_KEYS.forEach(k=>{
+      if(pr.length>0 && pr.every(r=>r.civil[k])) total += CIVIL_DEF[k].roadBonus;
+    });
+    return total;
+  }
+  function computeSupport(r){
+    if(r.owner!=='player') return 0;
+    let s=0;
+    ['kesehatan','ekonomi','pendidikan','airSanitasi'].forEach(k=>{ if(r.civil[k]) s+=5; });
+    if(r.civil.sinyal){ s += 5 + Math.max(0, countPlayerRegionsWithSinyal()-1); }
+    const rb = roadBonusTotal();
+    if(rb>0) s += Math.max(0, rb - 2*state.regionsLostToEnemy);
+    s -= Math.floor(state.corruption/5)*2;
+    return Math.min(100, Math.max(0,s));
+  }
+  function taxOf(r){
+    if(r.supportArea<=0) return 0;
+    const mult = 0.5 + (r.supportArea/100)*1.5;
+    const base = 1*mult;
+    return isFrontLine(r.id) ? base*0.5 : base;
+  }
+  function oilOf(r){
+    if(!r.oilDerrick.built) return 0;
+    return isFrontLine(r.id) ? 5 : 10;
+  }
+
+  /* ---------------- logging ---------------- */
+  function log(msg){
+    state.log.push({day:state.day,msg});
+    if(state.log.length>40) state.log.shift();
+    renderLog();
+  }
+  function toast(msg){
+    const wrap = document.getElementById('toast-wrap') || (function(){
+      const w=document.createElement('div'); w.className='toast-wrap'; w.id='toast-wrap';
+      document.getElementById('screen-game').appendChild(w); return w;
+    })();
+    const t=document.createElement('div'); t.className='toast'; t.textContent=msg;
+    wrap.appendChild(t);
+    setTimeout(()=>t.remove(),2600);
+  }
+
+  /* ---------------- tick ---------------- */
+  let timer=null;
+  function startClock(){
+    if(timer) clearInterval(timer);
+    timer = setInterval(tick,1000);
+  }
+  function tick(){
+    state.day++;
+
+    // civil rollout
+    CIVIL_ORDER.forEach(key=>{
+      const proj = state.civilProjects[key];
+      if(!proj) return;
+      const def = CIVIL_DEF[key];
+      state.regions.forEach(r=>{
+        if(r.owner!=='player' || r.civil[key]) return;
+        const d = distFromCapital(r.id);
+        if(d===Infinity) return;
+        let baseDur = def.duration;
+        if(def.reducible){
+          if(r.civil.listrik) baseDur*=0.75;
+          if(ROAD_KEYS.some(k=>r.civil[k])) baseDur*=0.75;
+        }
+        let required;
+        if(def.distanceScale){
+          required = effectiveDuration(baseDur*(1+0.15*d));
+        } else {
+          required = effectiveDuration(d + baseDur);
+        }
+        if(state.day - proj.startDay >= required){
+          r.civil[key] = true;
+          log(`${def.label} selesai di ${regionName(r.id)}.`);
+        }
+      });
+    });
+
+    // oil derrick / barak / training completion
+    state.regions.forEach(r=>{
+      if(r.oilDerrick.completeDay!==null && !r.oilDerrick.built && state.day>=r.oilDerrick.completeDay){
+        r.oilDerrick.built = true;
+        log(`Oil Derrick selesai di ${regionName(r.id)}.`);
+      }
+      if(r.barak.completeDay!==null && state.day>=r.barak.completeDay){
+        r.barak.count++;
+        r.barak.completeDay=null;
+        log(`Barak baru selesai di ${regionName(r.id)} (${r.barak.count}/${BARAK_MAX}).`);
+      }
+      if(r.trainCompleteDay!==null && state.day>=r.trainCompleteDay){
+        region(CAPITAL_PLAYER_ID).garrison++;
+        r.trainCompleteDay=null;
+        log(`1 batalion selesai dilatih, dikerahkan ke ${regionName(CAPITAL_PLAYER_ID)}.`);
+      }
+      // perbaikan fasilitas pasca-pemberontakan
+      if(r.rebuildTimers){
+        Object.keys(r.rebuildTimers).forEach(key=>{
+          const timer2 = r.rebuildTimers[key];
+          if(state.day>=timer2.completeDay){
+            if(key==='oilDerrick') r.oilDerrick.built=true;
+            else if(key==='barak') r.barak.count = Math.max(r.barak.count,1);
+            else r.civil[key]=true;
+            delete r.rebuildTimers[key];
+            log(`Perbaikan fasilitas (${key}) selesai di ${regionName(r.id)}.`);
+          }
+        });
+      }
+    });
+
+    // military national queue
+    state.militaryQueue = state.militaryQueue.filter(q=>{
+      if(state.day>=q.completeDay){
+        state.militaryBuilt[q.type]++;
+        log(`${NATIONAL_MIL[q.type].label} selesai dibangun (${state.militaryBuilt[q.type]}/${NATIONAL_MIL[q.type].max}).`);
+        return false;
+      }
+      return true;
+    });
+
+    // unit production queue
+    state.unitQueue = state.unitQueue.filter(q=>{
+      if(state.day>=q.completeDay){
+        state.units[q.type]++;
+        log(`Produksi ${UNIT_DEF[q.type].label} selesai di ${regionName(CAPITAL_PLAYER_ID)} (${state.units[q.type]} unit).`);
+        return false;
+      }
+      return true;
+    });
+
+    // troop transit
+    state.inTransit = state.inTransit.filter(t=>{
+      if(state.day>=t.completeDay){
+        const front = state.fronts[t.frontKey];
+        if(front){ front.extra += 1; log(`Batalion tiba di garis depan ${regionName(front.playerId)}.`); }
+        return false;
+      }
+      return true;
+    });
+
+    // pemberontakan: pemicu
+    state.regions.forEach(r=>{
+      if(r.owner!=='player') return;
+      if(!r.rebellion) r.rebellion={active:false};
+      if(r.supportArea<=0){ r.zeroSupportDays=(r.zeroSupportDays||0)+1; } else { r.zeroSupportDays=0; }
+      if(!r.rebellion.active && r.zeroSupportDays>=5){
+        r.rebellion = {active:true, since:state.day};
+        r.ruinedFacilities = r.ruinedFacilities||[];
+        log(`⚠ Pemberontakan pecah di ${regionName(r.id)}!`);
+        toast(`Pemberontakan pecah di ${regionName(r.id)}!`);
+      }
+    });
+    // pemberontakan: menyebar & menghancurkan fasilitas
+    state.regions.forEach(r=>{
+      if(r.owner==='player' && r.rebellion && r.rebellion.active){
+        if(Math.random()<0.2){
+          const targets = neighborIds(r.id).map(region).filter(n=>n.owner==='player' && !(n.rebellion&&n.rebellion.active));
+          if(targets.length){
+            const t = targets[Math.floor(Math.random()*targets.length)];
+            t.rebellion = {active:true, since:state.day};
+            t.ruinedFacilities = t.ruinedFacilities||[];
+            log(`Pemberontakan menyebar ke ${regionName(t.id)}.`);
+          }
+        }
+        if(Math.random()<0.15){
+          const candidates=[];
+          CIVIL_ORDER.forEach(k=>{ if(r.civil[k]) candidates.push(k); });
+          if(r.oilDerrick.built) candidates.push('oilDerrick');
+          if(r.barak.count>0) candidates.push('barak');
+          if(candidates.length){
+            const pick = candidates[Math.floor(Math.random()*candidates.length)];
+            if(pick==='oilDerrick') r.oilDerrick.built=false;
+            else if(pick==='barak') r.barak.count = Math.max(0,r.barak.count-1);
+            else r.civil[pick]=false;
+            r.ruinedFacilities = r.ruinedFacilities||[];
+            if(!r.ruinedFacilities.includes(pick)) r.ruinedFacilities.push(pick);
+            log(`Pemberontak menghancurkan fasilitas (${pick}) di ${regionName(r.id)}.`);
+          }
+        }
+      }
+    });
+
+    // recompute support
+    state.regions.forEach(r=>{ r.supportArea = computeSupport(r); });
+
+    // income
+    let moneyGain=0, oilGain=0;
+    state.regions.forEach(r=>{
+      if(r.owner==='player'){ moneyGain += taxOf(r); oilGain += oilOf(r); }
+    });
+    state.money += moneyGain;
+    state.oil += oilGain;
+
+    // korupsi & inflasi: peluruhan mingguan
+    if(state.day>0 && state.day%7===0){
+      state.inflation = Math.max(0, state.inflation-5);
+      if(state.antiKorupsiLevel>0) state.corruption = Math.max(0, state.corruption - state.antiKorupsiLevel*1);
+    }
+
+    // AI musuh
+    aiTick();
+
+    // fronts detection
+    recomputeFronts();
+
+    render();
+  }
+
+  function aiTick(){
+    Object.values(state.fronts).forEach(f=>{
+      if(!('enemyExtra' in f)) f.enemyExtra = 0;
+      if(Math.random()<0.12 && f.enemyExtra<4) f.enemyExtra++;
+      const bal = frontBalance(f);
+      if(bal<=15 && Math.random()<0.15 && !region(f.playerId).isCapital){
+        const pr = region(f.playerId);
+        pr.owner='enemy';
+        state.regionsLostToEnemy++;
+        f.enemyExtra=0;
+        log(`Musuh melakukan serangan balik dan merebut ${regionName(f.playerId)}!`);
+        toast('Wilayah kita direbut musuh!');
+      }
+    });
+  }
+
+  function recomputeFronts(){
+    const activeKeys = new Set();
+    state.regions.forEach(r=>{
+      if(r.owner!=='player') return;
+      neighborIds(r.id).forEach(n=>{
+        const rn = region(n);
+        if(rn.owner==='enemy'){
+          const key = r.id+'-'+n;
+          activeKeys.add(key);
+          if(!state.fronts[key]){
+            state.fronts[key] = {playerId:r.id, enemyId:n, extra:0, enemyExtra:0, establishedDay:state.day};
+          }
+        }
+      });
+    });
+    Object.keys(state.fronts).forEach(k=>{ if(!activeKeys.has(k)) delete state.fronts[k]; });
+  }
+
+  function frontBalance(f){
+    const decay = Math.min(80, 50 + (state.day - f.establishedDay)*2);
+    const playerPenalty = 10*enemyBorderCount(f.playerId);
+    const enemyPenalty = 10*playerBorderCount(f.enemyId);
+    const withBattalions = decay + (f.extra||0)*10 - (f.enemyExtra||0)*10 - playerPenalty + enemyPenalty;
+    return Math.max(5, Math.min(95, withBattalions));
+  }
+
+  /* ---------------- actions: pembangunan ---------------- */
+  function buyCivil(key){
+    const def = CIVIL_DEF[key];
+    if(state.civilProjects[key]) return;
+    const cost = effectiveCost(def.cost);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    bumpCorruption(); bumpInflation();
+    state.civilProjects[key] = {startDay: state.day};
+    log(`Mulai membangun ${def.label} secara nasional.`);
+    render();
+  }
+
+  function buildOilDerrick(id){
+    const r = region(id);
+    if(r.owner!=='player' || r.oilDerrick.built || r.oilDerrick.completeDay!==null) return;
+    const cost = effectiveCost(OIL_DERRICK_COST);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    bumpCorruption(); bumpInflation();
+    r.oilDerrick.completeDay = state.day + effectiveDuration(OIL_DERRICK_DUR);
+    log(`Mulai membangun Oil Derrick di ${regionName(id)}.`);
+    render();
+  }
+
+  function buildBarak(id){
+    const r = region(id);
+    if(r.owner!=='player' || r.barak.count>=BARAK_MAX || r.barak.completeDay!==null) return;
+    const cost = effectiveCost(BARAK_COST[r.barak.count]);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    bumpCorruption(); bumpInflation();
+    r.barak.completeDay = state.day + effectiveDuration(BARAK_DUR);
+    log(`Mulai membangun Barak ke-${r.barak.count+1} di ${regionName(id)}.`);
+    render();
+  }
+
+  function trainBattalion(id){
+    const r = region(id);
+    if(r.barak.count<1) return;
+    if(r.trainCompleteDay){ toast('Sudah ada pelatihan berjalan di wilayah ini.'); return; }
+    if(state.oil < TRAIN_COST_OIL){ toast('Minyak tidak cukup.'); return; }
+    state.oil -= TRAIN_COST_OIL;
+    bumpInflation();
+    r.trainCompleteDay = state.day + effectiveDuration(TRAIN_DUR);
+    log(`Mulai melatih 1 batalion di ${regionName(id)} (akan dikerahkan ke ibu kota).`);
+    render();
+  }
+
+  function buildNationalMil(type){
+    const def = NATIONAL_MIL[type];
+    const builtAndQueued = state.militaryBuilt[type] + state.militaryQueue.filter(q=>q.type===type).length;
+    if(builtAndQueued>=def.max){ toast('Sudah mencapai batas maksimal.'); return; }
+    const cost = effectiveCost(def.cost[builtAndQueued] ?? def.cost[def.cost.length-1]);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    bumpCorruption(); bumpInflation();
+    state.militaryQueue.push({type, completeDay: state.day+effectiveDuration(def.dur)});
+    log(`Mulai membangun ${def.label}.`);
+    render();
+  }
+
+  function produceUnit(type){
+    const def = UNIT_DEF[type];
+    if(state.militaryBuilt[def.needs]<1){ toast(`Butuh ${NATIONAL_MIL[def.needs].label} terlebih dahulu.`); return; }
+    if(def.alsoNeeds && state.militaryBuilt[def.alsoNeeds]<1){ toast(`Butuh ${NATIONAL_MIL[def.alsoNeeds].label} terlebih dahulu.`); return; }
+    const owned = state.units[type] + state.unitQueue.filter(q=>q.type===type).length;
+    if(owned>=def.max){ toast('Sudah mencapai batas maksimal.'); return; }
+    const cost = effectiveCost(def.cost);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    if(def.oil && state.oil < def.oil){ toast('Minyak tidak cukup.'); return; }
+    state.money -= cost;
+    if(def.oil) state.oil -= def.oil;
+    bumpInflation();
+    state.unitQueue.push({type, completeDay: state.day+effectiveDuration(def.dur)});
+    log(`Mulai memproduksi ${def.label}.`);
+    render();
+  }
+
+  function sellOil(amount){
+    amount = Math.min(amount, Math.floor(state.oil/100)*100);
+    if(amount<=0){ toast('Minimal jual 100 oil.'); return; }
+    state.oil -= amount;
+    state.money += amount/100;
+    log(`Menjual ${amount} oil seharga $${(amount/100).toFixed(2)}.`);
+    render();
+  }
+
+  function buyOil(amount){
+    const cost = effectiveCost(amount); // rate 100=100 sebelum inflasi
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    state.oil += amount;
+    log(`Membeli ${amount} oil seharga $${cost.toFixed(2)}.`);
+    render();
+  }
+
+  function buyAntiKorupsi(){
+    const cost = effectiveCost(20);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    state.antiKorupsiLevel = (state.antiKorupsiLevel||0)+1;
+    log(`Membangun Anti Korupsi (Level ${state.antiKorupsiLevel}, -${state.antiKorupsiLevel}%/minggu korupsi).`);
+    render();
+  }
+
+  function buyOutreach(){
+    const cost = effectiveCost(25);
+    if(state.money < cost){ toast('Uang tidak cukup.'); return; }
+    state.money -= cost;
+    state.outreachLevel = (state.outreachLevel||0)+1;
+    log(`Menjalankan program Outreach (Level ${state.outreachLevel}).`);
+    render();
+  }
+
+  /* ---------------- actions: militer ---------------- */
+  function deployBattalion(fromId, frontKey){
+    const r = region(fromId);
+    const front = state.fronts[frontKey];
+    if(!front || r.garrison<1) return;
+    const hops = hopsBetween(fromId, front.playerId);
+    if(hops===Infinity){ toast('Tidak ada jalur darat ke garis depan itu.'); return; }
+    const oilCost = MOVE_OIL_RATE.infantri*hops;
+    if(state.oil < oilCost){ toast(`Butuh ${oilCost} oil untuk logistik pengiriman.`); return; }
+    const t = dijkstraTime(fromId, front.playerId);
+    if(t===Infinity){ toast('Tidak ada jalur darat ke garis depan itu.'); return; }
+    state.oil -= oilCost;
+    r.garrison--;
+    state.inTransit.push({frontKey, completeDay: state.day+Math.max(1,Math.round(t))});
+    log(`Batalion dari ${regionName(fromId)} berangkat ke garis depan (~${Math.round(t)} hari, ${oilCost} oil).`);
+    animateTroopMove(fromId, front.playerId);
+    render();
+  }
+
+  function deploySupportUnit(type, frontKey){
+    const front = state.fronts[frontKey];
+    if(!front) return;
+    if(state.units[type]<1){ toast(`Tidak ada ${UNIT_DEF[type].label} tersedia.`); return; }
+    const hops = hopsBetween(CAPITAL_PLAYER_ID, front.playerId);
+    if(hops===Infinity){ toast('Tidak ada jalur darat dari ibu kota.'); return; }
+    const rateKey = (type==='jet'||type==='pengangkut') ? 'pesawat' : (type==='tank' ? 'tank' : 'misil');
+    const oilCost = MOVE_OIL_RATE[rateKey]*Math.max(1,hops);
+    if(state.oil < oilCost){ toast(`Butuh ${oilCost} oil logistik.`); return; }
+    state.oil -= oilCost;
+    state.units[type]--;
+    front.extra = (front.extra||0) + (SUPPORT_CONTRIBUTION[type]||0.5);
+    log(`${UNIT_DEF[type].label} dikirim memperkuat garis depan ${regionName(front.playerId)} (${oilCost} oil).`);
+    animateTroopMove(CAPITAL_PLAYER_ID, front.playerId);
+    render();
+  }
+
+  function rush(frontKey){
+    const front = state.fronts[frontKey];
+    if(!front) return;
+    const bal = frontBalance(front);
+    const success = bal>=80 ? true : Math.random()<0.8;
+    if(success){
+      const enemyR = region(front.enemyId);
+      enemyR.owner='player';
+      enemyR.scouted=true;
+      log(`Rush BERHASIL! ${regionName(front.enemyId)} sekarang milik kita.`);
+      toast('Wilayah berhasil direbut!');
+    } else {
+      front.extra = 0;
+      front.enemyExtra = 0;
+      front.establishedDay = state.day;
+      log(`Rush GAGAL di ${regionName(front.enemyId)} — seluruh batalion di front tersebut hilang.`);
+      toast('Rush gagal, batalion hilang.');
+    }
+    const capturedId = front.enemyId;
+    const wasCapital = success && region(capturedId).isCapital;
+    recomputeFronts();
+    render();
+    if(success){ flashRegion(capturedId,'capture-flash',900); }
+    if(wasCapital){ showWin(); }
+    closeOverlay('overlay-region');
+  }
+
+  function airStrike(frontKey){
+    if(state.units.jet<1){ toast('Tidak ada Jet tersedia.'); return; }
+    const front = state.fronts[frontKey];
+    if(!front) return;
+    const hops = hopsBetween(CAPITAL_PLAYER_ID, front.playerId);
+    const oilCost = MOVE_OIL_RATE.pesawat*Math.max(1,hops);
+    if(state.oil < oilCost){ toast(`Butuh ${oilCost} oil logistik untuk sortie ini.`); return; }
+    state.oil -= oilCost;
+    state.units.jet--;
+    front.extra = (front.extra||0) + 0.1; // +1% kekuatan ~ dianggap pecahan kecil extra battalion
+    const destroyed = Math.random()<0.5;
+    if(destroyed){ log('Jet hancur setelah melakukan serangan.'); }
+    else { log('Serangan udara sukses, Jet kembali dengan selamat.'); }
+    render();
+    flashRegion(front.enemyId,'jet-strike',700);
+  }
+
+  function useScoutOn(id){
+    if(state.units.pengintai<1){ toast('Tidak ada unit Pengintai.'); return; }
+    const r = region(id);
+    const isBehindFront = neighborIds(id).some(n=>region(n).owner==='player') === false &&
+      neighborIds(id).some(n=>{
+        const rn=region(n);
+        return rn.owner==='enemy' && neighborIds(n).some(nn=>region(nn).owner==='player');
+      });
+    if(!(isFrontLine(id) || isBehindFront)){ toast('Pengintai biasa hanya efektif di garis depan / 1 wilayah di belakangnya.'); return; }
+    state.units.pengintai--;
+    r.scouted = true;
+    log(`${regionName(id)} berhasil diintai.`);
+    render();
+  }
+
+  function useDrone(){
+    if(state.units.drone<1){ toast('Belum punya Drone.'); return; }
+    if(state.day < state.droneCooldownUntil){ toast(`Drone masih cooldown ${state.droneCooldownUntil-state.day} hari.`); return; }
+    state.droneScanMode = true;
+    state.droneScanRemaining = 3;
+    toast('Mode Drone aktif: pilih hingga 3 wilayah musuh di peta.');
+    closeOverlay('overlay-build');
+  }
+  function droneRevealRegion(id){
+    const r = region(id);
+    if(r.owner!=='enemy' || r.scouted) return;
+    r.scouted = true;
+    state.droneScanRemaining--;
+    log(`Drone berhasil mengintai ${regionName(id)}.`);
+    if(state.droneScanRemaining<=0){
+      state.droneScanMode=false;
+      state.droneCooldownUntil = state.day+30;
+      toast('Drone kembali, cooldown 30 hari.');
+    }
+    render();
+  }
+
+  function suppressRebellion(fromId, targetId){
+    const r = region(fromId);
+    const t = region(targetId);
+    if(r.garrison<1){ toast('Tidak ada garnisun di wilayah asal.'); return; }
+    if(!t.rebellion || !t.rebellion.active){ return; }
+    const hops = hopsBetween(fromId, targetId);
+    if(hops===Infinity){ toast('Tidak ada jalur darat ke wilayah itu.'); return; }
+    const oilCost = MOVE_OIL_RATE.infantri*hops;
+    if(state.oil < oilCost){ toast(`Butuh ${oilCost} oil untuk mengirim pasukan.`); return; }
+    state.oil -= oilCost;
+    r.garrison--;
+    const success = Math.random()<0.7;
+    if(success){
+      t.rebellion = {active:false};
+      (t.ruinedFacilities||[]).forEach(key=>{
+        const baseDur = key==='oilDerrick' ? OIL_DERRICK_DUR : (key==='barak' ? BARAK_DUR : (CIVIL_DEF[key]?CIVIL_DEF[key].duration:14));
+        t.rebuildTimers = t.rebuildTimers||{};
+        t.rebuildTimers[key] = {completeDay: state.day+Math.round(baseDur*1.5)};
+      });
+      t.ruinedFacilities=[];
+      log(`Pemberontakan di ${regionName(targetId)} berhasil ditumpas. Perbaikan fasilitas dimulai (durasi x1.5).`);
+      toast('Pemberontakan berhasil ditumpas!');
+    } else {
+      log(`Penumpasan pemberontakan di ${regionName(targetId)} gagal, batalion hilang.`);
+      toast('Penumpasan gagal.');
+    }
+    if(fromId!==targetId) animateTroopMove(fromId, targetId);
+    render();
+  }
+
+  function regionName(id){
+    const r = region(id);
+    if(r.isCapital) return r.owner==='player' ? 'Ibu Kota Kita' : 'Ibu Kota Musuh';
+    return `Wilayah ${id+1}`;
+  }
+
+  function showWin(){
+    document.getElementById('overlay-win').classList.remove('hidden');
+    clearInterval(timer);
+  }
+
+  /* ---------------- animasi ---------------- */
+  function flashRegion(id, className, duration){
+    const el = document.querySelector(`.region[data-id="${id}"]`);
+    if(!el) return;
+    el.classList.add(className);
+    setTimeout(()=>{ el.classList.remove(className); }, duration);
+  }
+  function animateTroopMove(fromId, toId){
+    const mapWrap = document.getElementById('map-wrap');
+    const fromEl = document.querySelector(`.region[data-id="${fromId}"]`);
+    const toEl = document.querySelector(`.region[data-id="${toId}"]`);
+    if(!mapWrap||!fromEl||!toEl) return;
+    const wrapRect = mapWrap.getBoundingClientRect();
+    const fr = fromEl.getBoundingClientRect();
+    const tr = toEl.getBoundingClientRect();
+    const dot = document.createElement('div');
+    dot.className='troop-dot';
+    dot.style.left = (fr.left-wrapRect.left+fr.width/2)+'px';
+    dot.style.top = (fr.top-wrapRect.top+fr.height/2)+'px';
+    mapWrap.appendChild(dot);
+    requestAnimationFrame(()=>{
+      dot.style.transition='left 1.1s ease, top 1.1s ease, opacity 1.1s ease';
+      dot.style.left = (tr.left-wrapRect.left+tr.width/2)+'px';
+      dot.style.top = (tr.top-wrapRect.top+tr.height/2)+'px';
+    });
+    setTimeout(()=>dot.remove(),1200);
+  }
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+  function render(){
+    document.getElementById('hud-day').textContent = state.day;
+    const dt = dateOf(state.day);
+    document.getElementById('hud-date').textContent = `${dt.day} ${MONTH_NAMES[dt.month]} ${dt.year}`;
+    const h = String(Math.floor((state.day%24))).padStart(2,'0');
+    document.getElementById('hud-time').textContent = `${h}:00`;
+    document.getElementById('hud-oil').textContent = Math.floor(state.oil);
+    document.getElementById('hud-money').textContent = '$'+state.money.toFixed(2);
+    document.getElementById('hud-corruption').textContent = state.corruption.toFixed(0)+'%';
+    document.getElementById('hud-inflation').textContent = state.inflation.toFixed(0)+'%';
+
+    renderMap();
+    if(!document.getElementById('overlay-build').classList.contains('hidden')) renderBuildBody();
+    if(!document.getElementById('overlay-region').classList.contains('hidden')) renderRegionBody();
+  }
+
+  function activeBuildCount(r){
+    if(r.owner!=='player') return 0;
+    let n=0;
+    CIVIL_ORDER.forEach(key=>{
+      if(state.civilProjects[key] && !r.civil[key] && distFromCapital(r.id)!==Infinity) n++;
+    });
+    if(r.oilDerrick.completeDay!==null && !r.oilDerrick.built) n++;
+    if(r.barak.completeDay!==null) n++;
+    if(r.trainCompleteDay) n++;
+    return Math.min(3,n);
+  }
+
+  function renderMap(){
+    const grid = document.getElementById('map-grid');
+    grid.innerHTML='';
+    state.regions.forEach(r=>{
+      const el = document.createElement('div');
+      const front = isFrontLine(r.id);
+      const fogged = r.owner==='enemy' && !r.scouted && !front;
+      const rebel = r.owner==='player' && r.rebellion && r.rebellion.active;
+      el.className = `region region--${r.owner} terrain-${r.terrain}` + (front?' region--front':'') + (r.isCapital?' region--capital':'') + (fogged?' region--fog':'') + (rebel?' region--rebel':'');
+      el.dataset.id = r.id;
+      if(fogged){
+        el.innerHTML = `<span class="region-terrain-tag">?</span>`;
+      } else {
+        el.innerHTML = `<span class="region-terrain-tag">${TERRAIN_LABEL[r.terrain][0]}</span>${regionName(r.id)}`;
+        const bricks = activeBuildCount(r);
+        if(bricks>0){
+          const stack = document.createElement('div'); stack.className='brick-stack';
+          for(let i=0;i<bricks;i++){ const b=document.createElement('div'); b.className='brick'; stack.appendChild(b); }
+          el.appendChild(stack);
+        }
+      }
+      el.addEventListener('click', ()=> openRegion(r.id));
+      grid.appendChild(el);
+    });
+  }
+
+  function renderLog(){
+    const feed = document.getElementById('log-feed');
+    feed.innerHTML='';
+    state.log.slice(-6).reverse().forEach(l=>{
+      const d=document.createElement('div'); d.className='log-line'; d.textContent=`[H${l.day}] ${l.msg}`;
+      feed.appendChild(d);
+    });
+  }
+
+  function queueDaysLeft(queueArr, type){
+    return queueArr.filter(q=>q.type===type).map(q=>Math.max(0,q.completeDay-state.day));
+  }
+
+  let activeTab='civil';
+  function renderBuildBody(){
+    const body = document.getElementById('build-body');
+    body.innerHTML='';
+    const sel = state.selectedRegionId!==null ? region(state.selectedRegionId) : null;
+
+    if(activeTab==='civil'){
+      CIVIL_ORDER.forEach(key=>{
+        const def = CIVIL_DEF[key];
+        const proj = state.civilProjects[key];
+        const item = document.createElement('div'); item.className='build-item';
+        let status = 'Belum dibeli';
+        let pct = 0;
+        if(proj){
+          const done = state.regions.filter(r=>r.owner==='player'&&r.civil[key]).length;
+          const total = state.regions.filter(r=>r.owner==='player').length;
+          status = done>=total ? 'Selesai di semua wilayah' : `Menyebar: ${done}/${total} wilayah`;
+          pct = total? (done/total*100):0;
+        }
+        item.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">${def.label}</div><div class="build-item__meta">Biaya $${effectiveCost(def.cost).toFixed(2)} • Durasi dasar ${def.duration} hari${def.distanceScale?' (+15%/wilayah dari ibu kota)':''}</div></div>
+            <button class="btn btn--sm ${proj?'':'btn--primary'}" ${proj?'disabled':''}>${proj?'Dibeli':'Bangun'}</button>
+          </div>
+          <div class="build-item__status">${status}</div>
+          <div class="progress"><span style="width:${pct}%"></span></div>
+        `;
+        item.querySelector('button').addEventListener('click',()=>buyCivil(key));
+        body.appendChild(item);
+      });
+
+      const oilItem = document.createElement('div'); oilItem.className='build-item';
+      if(sel && sel.owner==='player'){
+        const od = sel.oilDerrick;
+        const st = od.built ? 'Selesai (10 oil/hari, 5 jika front line)' : (od.completeDay!==null ? `Sedang dibangun (${od.completeDay-state.day} hari lagi)` : 'Belum dibangun');
+        oilItem.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">Oil Derrick — ${regionName(sel.id)}</div><div class="build-item__meta">Biaya $${effectiveCost(OIL_DERRICK_COST).toFixed(2)} • Durasi ${OIL_DERRICK_DUR} hari</div></div>
+            <button class="btn btn--sm btn--primary" ${(od.built||od.completeDay!==null)?'disabled':''}>Bangun</button>
+          </div>
+          <div class="build-item__status">${st}</div>
+        `;
+        oilItem.querySelector('button').addEventListener('click',()=>buildOilDerrick(sel.id));
+      } else {
+        oilItem.innerHTML = `<div class="build-item__meta">Pilih salah satu wilayahmu di peta dulu untuk membangun Oil Derrick di sana.</div>`;
+      }
+      body.appendChild(oilItem);
+
+      const sellItem = document.createElement('div'); sellItem.className='build-item';
+      sellItem.innerHTML = `
+        <div class="build-item__name">Jual Oil (100 oil = $1)</div>
+        <div class="inline-actions">
+          <button class="btn btn--sm" data-amt="100">Jual 100</button>
+          <button class="btn btn--sm" data-amt="500">Jual 500</button>
+          <button class="btn btn--sm" data-amt="all">Jual Semua</button>
+        </div>
+      `;
+      sellItem.querySelectorAll('button').forEach(b=>{
+        b.addEventListener('click',()=>{
+          const amt = b.dataset.amt==='all' ? Math.floor(state.oil/100)*100 : parseInt(b.dataset.amt);
+          sellOil(amt);
+        });
+      });
+      body.appendChild(sellItem);
+    }
+
+    if(activeTab==='military'){
+      body.appendChild(sectionLabel('FASILITAS NASIONAL'));
+      Object.keys(NATIONAL_MIL).forEach(type=>{
+        const def = NATIONAL_MIL[type];
+        const built = state.militaryBuilt[type];
+        const queued = state.militaryQueue.filter(q=>q.type===type).length;
+        const total = built+queued;
+        const item = document.createElement('div'); item.className='build-item';
+        const nextCost = effectiveCost(def.cost[Math.min(total,def.cost.length-1)]);
+        const daysLeft = queueDaysLeft(state.militaryQueue,type);
+        item.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">${def.label}</div><div class="build-item__meta">${built}/${def.max} selesai${queued?` • ${queued} antrian (sisa: ${daysLeft.join(', ')} hari)`:''} • Biaya berikut $${nextCost.toFixed(2)} • ${effectiveDuration(def.dur)} hari</div></div>
+            <button class="btn btn--sm btn--primary" ${total>=def.max?'disabled':''}>Bangun</button>
+          </div>
+        `;
+        item.querySelector('button').addEventListener('click',()=>buildNationalMil(type));
+        body.appendChild(item);
+      });
+
+      body.appendChild(sectionLabel('PRODUKSI UNIT'));
+      Object.keys(UNIT_DEF).forEach(type=>{
+        const def = UNIT_DEF[type];
+        const owned = state.units[type];
+        const queued = state.unitQueue.filter(q=>q.type===type).length;
+        const locked = state.militaryBuilt[def.needs]<1 || (def.alsoNeeds && state.militaryBuilt[def.alsoNeeds]<1);
+        const daysLeft = queueDaysLeft(state.unitQueue,type);
+        const item = document.createElement('div'); item.className='build-item';
+        item.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">${def.label}</div><div class="build-item__meta">Punya: ${owned}${def.max!==Infinity?'/'+def.max:''}${queued?` • ${queued} diproduksi (sisa: ${daysLeft.join(', ')} hari)`:''} • $${effectiveCost(def.cost).toFixed(2)}${def.oil?` + ${def.oil} oil`:''} • ${effectiveDuration(def.dur)} hari${locked?' • Butuh '+NATIONAL_MIL[def.needs].label+(def.alsoNeeds?' & '+NATIONAL_MIL[def.alsoNeeds].label:''):''}</div></div>
+            <button class="btn btn--sm btn--primary" ${locked?'disabled':''}>Produksi</button>
+          </div>
+        `;
+        item.querySelector('button').addEventListener('click',()=>produceUnit(type));
+        body.appendChild(item);
+      });
+      if(state.militaryBuilt.pusatPengintai>=1){
+        const droneItem = document.createElement('div'); droneItem.className='build-item';
+        const cd = Math.max(0, state.droneCooldownUntil-state.day);
+        droneItem.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">Pakai Drone</div><div class="build-item__meta">Mengintai 3 wilayah musuh sekaligus • Cooldown ${cd>0?cd+' hari lagi':'siap'}</div></div>
+            <button class="btn btn--sm btn--primary" ${(state.units.drone<1||cd>0)?'disabled':''}>Aktifkan</button>
+          </div>
+        `;
+        droneItem.querySelector('button').addEventListener('click',useDrone);
+        body.appendChild(droneItem);
+      }
+
+      body.appendChild(sectionLabel('BARAK & LATIHAN'));
+      if(sel && sel.owner==='player'){
+        const b = sel.barak;
+        const item = document.createElement('div'); item.className='build-item';
+        const cost = b.count<BARAK_MAX ? effectiveCost(BARAK_COST[b.count]) : null;
+        item.innerHTML = `
+          <div class="build-item__row">
+            <div><div class="build-item__name">Barak — ${regionName(sel.id)}</div><div class="build-item__meta">${b.count}/${BARAK_MAX} unit${b.completeDay!==null?` • sedang dibangun (${b.completeDay-state.day} hari lagi)`:''}${cost?` • Biaya berikut $${cost.toFixed(2)}`:''}</div></div>
+            <button class="btn btn--sm btn--primary" ${(b.count>=BARAK_MAX||b.completeDay!==null)?'disabled':''}>Bangun</button>
+          </div>
+          <div class="build-item__row">
+            <div class="build-item__meta">Garnisun siap: ${sel.garrison} batalion${sel.trainCompleteDay?` • sedang melatih (${sel.trainCompleteDay-state.day} hari lagi)`:''}</div>
+            <button class="btn btn--sm" ${(b.count<1||sel.trainCompleteDay)?'disabled':''}>Latih ($0 + 5 oil)</button>
+          </div>
+        `;
+        const btns = item.querySelectorAll('button');
+        btns[0].addEventListener('click',()=>buildBarak(sel.id));
+        btns[1].addEventListener('click',()=>trainBattalion(sel.id));
+        body.appendChild(item);
+      } else {
+        const p=document.createElement('div'); p.className='build-item__meta'; p.textContent='Pilih wilayahmu di peta untuk mengatur Barak & latihan infantri.';
+        body.appendChild(p);
+      }
+    }
+
+    if(activeTab==='negara'){
+      body.appendChild(sectionLabel('EKONOMI NASIONAL'));
+      const statItem = document.createElement('div'); statItem.className='build-item';
+      statItem.innerHTML = `
+        <div class="build-item__row"><div class="build-item__name">Korupsi</div><div class="build-item__meta">${state.corruption.toFixed(0)}% (mengurangi Support Area semua wilayah ${Math.floor(state.corruption/5)*2}%)</div></div>
+        <div class="build-item__row"><div class="build-item__name">Inflasi</div><div class="build-item__meta">${state.inflation.toFixed(0)}% (biaya seluruh pembelian naik ${state.inflation.toFixed(0)}%, turun 5%/minggu)</div></div>
+      `;
+      body.appendChild(statItem);
+
+      const akItem = document.createElement('div'); akItem.className='build-item';
+      akItem.innerHTML = `
+        <div class="build-item__row">
+          <div><div class="build-item__name">Pembangunan Anti Korupsi</div><div class="build-item__meta">Biaya $${effectiveCost(20).toFixed(2)} • Instan • -${(state.antiKorupsiLevel||0)+1}%/minggu korupsi setelah dibangun (Level saat ini: ${state.antiKorupsiLevel||0})</div></div>
+          <button class="btn btn--sm btn--primary">Bangun</button>
+        </div>`;
+      akItem.querySelector('button').addEventListener('click',buyAntiKorupsi);
+      body.appendChild(akItem);
+
+      const orItem = document.createElement('div'); orItem.className='build-item';
+      orItem.innerHTML = `
+        <div class="build-item__row">
+          <div><div class="build-item__name">Outreach</div><div class="build-item__meta">Biaya $${effectiveCost(25).toFixed(2)} • Instan • -5% durasi pembangunan (Level saat ini: ${state.outreachLevel||0}, total -${(100-Math.round(outreachMultiplier()*100))}%)</div></div>
+          <button class="btn btn--sm btn--primary">Jalankan</button>
+        </div>`;
+      orItem.querySelector('button').addEventListener('click',buyOutreach);
+      body.appendChild(orItem);
+
+      body.appendChild(sectionLabel('MINYAK'));
+      const buyOilItem = document.createElement('div'); buyOilItem.className='build-item';
+      buyOilItem.innerHTML = `
+        <div class="build-item__name">Beli Oil (rate $100 = 100 oil, sebelum inflasi)</div>
+        <div class="inline-actions">
+          <button class="btn btn--sm" data-amt="100">Beli 100</button>
+          <button class="btn btn--sm" data-amt="500">Beli 500</button>
+        </div>`;
+      buyOilItem.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>buyOil(parseInt(b.dataset.amt))));
+      body.appendChild(buyOilItem);
+    }
+  }
+  function sectionLabel(text){ const d=document.createElement('div'); d.className='section-label'; d.textContent=text; return d; }
+
+  function openRegion(id){
+    if(state.droneScanMode){
+      droneRevealRegion(id);
+      return;
+    }
+    state.selectedRegionId = id;
+    document.getElementById('overlay-region').classList.remove('hidden');
+    renderRegionBody();
+  }
+  function renderRegionBody(){
+    const id = state.selectedRegionId;
+    const r = region(id);
+    document.getElementById('region-panel-title').textContent = regionName(id);
+    const body = document.getElementById('region-body');
+    body.innerHTML='';
+
+    const sub = document.createElement('div');
+    sub.innerHTML = `<div class="region-info-sub">${TERRAIN_LABEL[r.terrain]} • ${r.owner==='player'?'Milik Kita':'Wilayah Musuh'}${isFrontLine(id)?' • GARIS DEPAN':''}${(r.rebellion&&r.rebellion.active)?' • PEMBERONTAKAN':''}</div>`;
+    body.appendChild(sub);
+
+    if(r.owner==='player'){
+      body.appendChild(statRow('Support Area', r.supportArea.toFixed(0)+'%'));
+      body.appendChild(statRow('Pajak/hari', taxOf(r).toFixed(2)));
+      body.appendChild(statRow('Oil/hari', oilOf(r)));
+      body.appendChild(statRow('Oil Derrick', r.oilDerrick.built?'Selesai':(r.oilDerrick.completeDay!==null?'Dibangun...':'Belum ada')));
+      body.appendChild(statRow('Barak', `${r.barak.count}/${BARAK_MAX}`));
+      body.appendChild(statRow('Garnisun', `${r.garrison} batalion`));
+      CIVIL_ORDER.forEach(k=>{
+        body.appendChild(statRow(CIVIL_DEF[k].label, r.civil[k]?'✓ Selesai':'—'));
+      });
+
+      if(r.rebellion && r.rebellion.active){
+        body.appendChild(sectionLabel('⚠ PEMBERONTAKAN AKTIF'));
+        const otherGarrisons = state.regions.filter(x=>x.owner==='player' && x.garrison>0);
+        if(otherGarrisons.length){
+          const wrap=document.createElement('div'); wrap.className='inline-actions'; wrap.style.marginTop='4px';
+          const select=document.createElement('select');
+          otherGarrisons.forEach(x=>{ const opt=document.createElement('option'); opt.value=x.id; opt.textContent=`${regionName(x.id)} (${x.garrison} batalion)`; select.appendChild(opt); });
+          const btn=document.createElement('button'); btn.className='btn btn--sm btn--danger'; btn.textContent='Kirim Pasukan Tumpas';
+          btn.addEventListener('click',()=>suppressRebellion(parseInt(select.value), r.id));
+          wrap.appendChild(select); wrap.appendChild(btn);
+          body.appendChild(wrap);
+        } else {
+          body.appendChild(statRow('Catatan','Butuh batalion di suatu wilayah untuk menumpas.'));
+        }
+      }
+
+      // deploy control if garrison exists and fronts exist
+      const frontEntries = Object.entries(state.fronts);
+      if(r.garrison>0 && frontEntries.length>0){
+        const wrap = document.createElement('div');
+        wrap.className='inline-actions';
+        wrap.style.marginTop='8px';
+        const select = document.createElement('select');
+        frontEntries.forEach(([key,f])=>{
+          const opt=document.createElement('option'); opt.value=key; opt.textContent=`Front: ${regionName(f.playerId)} vs ${regionName(f.enemyId)}`;
+          select.appendChild(opt);
+        });
+        const btn = document.createElement('button'); btn.className='btn btn--sm btn--primary'; btn.textContent='Kirim 1 Batalion';
+        btn.addEventListener('click',()=>deployBattalion(id, select.value));
+        wrap.appendChild(select); wrap.appendChild(btn);
+        body.appendChild(sectionLabel('KIRIM BALA BANTUAN'));
+        body.appendChild(wrap);
+      }
+    } else {
+      let matchedKey=null, matchedFront=null;
+      Object.entries(state.fronts).forEach(([key,f])=>{ if(f.enemyId===id){ matchedKey=key; matchedFront=f; } });
+
+      if(matchedFront){
+        const bal = frontBalance(matchedFront);
+        body.appendChild(statRow('Kekuatan Kita', bal.toFixed(0)+'%'));
+        const barWrap=document.createElement('div'); barWrap.className='balance-bar';
+        barWrap.innerHTML = `<span style="width:${bal}%"></span>`;
+        body.appendChild(barWrap);
+        body.appendChild(statRow('Jumlah Batalion', r.scouted? 'Terdeteksi (butuh log tempur)' : 'Tidak terlihat — butuh Pusat Pengintai'));
+
+        const actions=document.createElement('div'); actions.className='inline-actions'; actions.style.marginTop='6px';
+        const rushBtn=document.createElement('button'); rushBtn.className='btn btn--primary'; rushBtn.textContent = bal>=80 ? 'Rush (Aman)' : 'Rush (Risiko 20%)';
+        rushBtn.addEventListener('click',()=>rush(matchedKey));
+        actions.appendChild(rushBtn);
+
+        const airBtn=document.createElement('button'); airBtn.className='btn'; airBtn.textContent=`Serang Udara (Jet: ${state.units.jet})`;
+        airBtn.disabled = state.units.jet<1;
+        airBtn.addEventListener('click',()=>airStrike(matchedKey));
+        actions.appendChild(airBtn);
+
+        ['tank','misilSerang'].forEach(type=>{
+          if(state.units[type]>0){
+            const b=document.createElement('button'); b.className='btn'; b.textContent=`Kirim ${UNIT_DEF[type].label} (${state.units[type]})`;
+            b.addEventListener('click',()=>deploySupportUnit(type, matchedKey));
+            actions.appendChild(b);
+          }
+        });
+
+        if(state.militaryBuilt.pusatPengintai>=1 && !r.scouted){
+          const scoutBtn=document.createElement('button'); scoutBtn.className='btn'; scoutBtn.textContent=`Intai (Pengintai: ${state.units.pengintai})`;
+          scoutBtn.disabled = state.units.pengintai<1;
+          scoutBtn.addEventListener('click',()=>useScoutOn(id));
+          actions.appendChild(scoutBtn);
+        }
+        body.appendChild(actions);
+      } else if(r.scouted){
+        body.appendChild(statRow('Status','Sudah pernah diintai (Drone)'));
+      } else {
+        body.appendChild(statRow('Status','Tertutup kabut perang — belum terjangkau'));
+      }
+    }
+  }
+  function statRow(label,val){
+    const d=document.createElement('div'); d.className='stat-row';
+    d.innerHTML = `<span>${label}</span><b>${val}</b>`;
+    return d;
+  }
+
+  /* ---------------- overlay helpers ---------------- */
+  function closeOverlay(id){ document.getElementById(id).classList.add('hidden'); }
+  function openOverlay(id){ document.getElementById(id).classList.remove('hidden'); }
+
+  /* ============================================================
+     WIRING / NAVIGATION
+     ============================================================ */
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+    document.getElementById(id).classList.remove('hidden');
+  }
+
+  document.getElementById('btn-start').addEventListener('click',()=>showScreen('screen-country'));
+  document.getElementById('btn-option').addEventListener('click',()=>showScreen('screen-option'));
+  document.querySelectorAll('[data-back]').forEach(b=>{
+    b.addEventListener('click',()=>showScreen(b.dataset.back));
+  });
+  document.getElementById('pick-usa').addEventListener('click',()=>showScreen('screen-map'));
+  document.getElementById('pick-plain').addEventListener('click',()=>{
+    state = freshState();
+    document.querySelectorAll('.screen').forEach(s=>s.classList.add('hidden'));
+    document.getElementById('screen-game').classList.add('active');
+    document.getElementById('screen-game').classList.remove('hidden');
+    recomputeFronts();
+    render();
+    startClock();
+  });
+
+  document.getElementById('btn-open-build').addEventListener('click',()=>{
+    openOverlay('overlay-build');
+    renderBuildBody();
+  });
+  document.querySelectorAll('[data-close]').forEach(b=>{
+    b.addEventListener('click',()=>closeOverlay(b.dataset.close));
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      activeTab = b.dataset.tab;
+      renderBuildBody();
+    });
+  });
+
+})();
+</script>
+</body>
+</html>
