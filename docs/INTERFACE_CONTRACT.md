@@ -1,15 +1,18 @@
-# THE WARFARE — Interface Contract v0.1
+# THE WARFARE — Interface Contract v0.2
 **Owner:** Integration Lead / Build Engineer (Agent #13)
-**Status:** DRAFT — awaiting Technical Architect (#1) approval
-**Source of truth referenced:** `GDD_The_Warfare_v0.0.2.md` (see NOTE below)
+**Status:** DRAFT — revised per PM review of v0.1 (see Changelog)
+**Source of truth:** `GDD_The_Warfare_v0.0.2.md` — **CONFIRMED by PM** as correct source (v0.0.1 superseded, no revision needed).
 **Contains:** Data contracts ONLY. No gameplay logic. Every field maps to a GDD section reference so any agent can verify scope.
 
 ---
 
-## ⚠️ NOTE TO PM — Version Discrepancy
-Task-000 specifies `GDD_The_Warfare_v0.0.1.md` as source of truth. That file is not available to me.
-Available: `GDD_The_Warfare_v0.0.2.md` (states it supersedes v0.0.1) and the companion Numeric Balancing Draft v0.1.
-**ASSUMPTION (low-risk, reversible):** This contract is built against v0.0.2. Flagging as `NEEDS CONFIRMATION` — if v0.0.1 contains entities dropped or renamed in v0.0.2, this contract must be revised before any agent starts implementation.
+## Changelog
+- **v0.2 (this revision):**
+  1. `Unit.state` now includes `"withdrawing"` as distinct from `"retreating"` (GDD §6.3, §15.2, §21 — LOCKED). Note: PM's review cited "§32.5"; the GDD only goes to §22, so the actual locked reference is §6.3/§15.2/§21 — substance unchanged, citation corrected.
+  2. Added clarifying paragraph to §3.6: insurgents are an abstract aggregate (`unitCount`/`effectivePower`), not individual `Unit` entities.
+  3. Added provisional `VisibilityEntry` schema (§3.7.1) for Intelligence reveal-state, status NEEDS CONFIRMATION.
+  4. Source-of-truth version (v0.0.2) confirmed by PM — no change needed, noted for record.
+- **v0.1:** Initial draft.
 
 ---
 
@@ -100,11 +103,16 @@ Unit = {
   type: "AD" | "tank" | "jet" | "missile" | "intel_personnel" | "intel_drone",
   power: number,                   // relative scale, see Balancing §5 for base costs
   locationRegionId: RegionId | null,   // null while in transit (see MovementOrder)
-  state: "garrisoned" | "moving" | "attacking" | "retreating" |
+  state: "garrisoned" | "moving" | "attacking" | "retreating" | "withdrawing" |
          "patrolling" | "striking" | "cooldown" | "captured",
   cooldownUntilTick: number | null   // Jet cooldown, GDD §7
 }
 ```
+
+**LOCKED (GDD §6.3, §15.2, §21) — `retreating` vs `withdrawing` must never share a representation:**
+- `retreating` = **attacker** pulling back mid-attack ("Retreat", §6.3 — attacker terminology only).
+- `withdrawing` = **defender** pulling back before/during being attacked to save troops ("Withdraw", §15.2/§21 Glossary — distinct mechanism, distinct terminology).
+Combat module sets `retreating`; Defensive AI / defender-withdraw logic sets `withdrawing`. Do not merge these two states or infer one from the other.
 
 ### 3.4 MovementOrder  (GDD §5.3)
 ```js
@@ -149,6 +157,8 @@ InsurgencyState = {
 }
 ```
 
+**IMPORTANT — insurgents are an abstract aggregate, not Unit entities.** `unitCount` and `effectivePower` are scalar numbers describing the insurgency as a whole (per GDD §12.2's cumulative baseline-per-tier lookup). Insurgent forces are **NOT** individual `Unit` records like AD/Tank/Jet — they do not get entries in `GameState.units`, do not have their own `id`/`state`/`locationRegionId`, and are not movable or targetable the way Player/Enemy units are. Any module (Combat, UI, AI) that needs to reason about insurgents must read `InsurgencyState.unitCount`/`effectivePower` directly — do not synthesize fake `Unit` objects to represent them.
+
 ### 3.7 FactionState  (GDD §16, §17)
 ```js
 FactionState = {
@@ -157,9 +167,20 @@ FactionState = {
   money: number,
   oil: number,
   oilDerricksBuilt: number,        // max 4, GDD §3.2
-  sanctionsApplied: string[]       // thresholds already crossed, GDD §16.3
+  sanctionsApplied: string[],      // thresholds already crossed, GDD §16.3
+  visibility: Map<RegionId, VisibilityEntry>   // see §3.7.1 below — NEEDS CONFIRMATION
 }
 ```
+
+#### 3.7.1 VisibilityEntry (GDD §8 — Intelligence reveal state)
+**STATUS: NEEDS CONFIRMATION.** Provisional schema supplied by PM to unblock work; not yet signed off by the Intelligence agent. Does not block other domains from proceeding.
+```js
+VisibilityEntry = {
+  personnelRevealed: boolean,   // GDD §8: frontline info -- AD count, facilities, Jet patrol status, Tanks
+  droneRevealed: boolean        // GDD §8: deeper enemy region info
+}
+```
+Keyed per `RegionId` inside `FactionState.visibility` — i.e. "what this faction currently knows about that region." `personnelRevealed` is expected to come from Intelligence Personnel, `droneRevealed` from Intelligence Drones (GDD §4.3, §8), but the exact trigger/decay logic is owned by the Intelligence agent, not this contract.
 
 ### 3.8 PolicyState  (GDD §4.4)
 ```js
@@ -196,7 +217,7 @@ TickEvent = {
 | AI (Enemy) | issues MovementOrder/production orders as "enemy", never writes Player state | all enemy-visible state |
 | UI | read-only on everything | everything |
 
-**OPEN QUESTION → PM:** Intelligence "reveal" state (what the Player can currently see of Enemy regions) has no schema yet — GDD §8 is thin on data shape. Needs a short session with whoever owns Intelligence before their TASK starts, or they'll invent their own shape.
+**RESOLVED (see §3.7.1):** Intelligence reveal-state now has a provisional `VisibilityEntry` schema, status NEEDS CONFIRMATION pending Intelligence agent sign-off. Not blocking.
 
 ---
 
