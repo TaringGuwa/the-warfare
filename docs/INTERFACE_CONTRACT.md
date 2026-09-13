@@ -1,4 +1,4 @@
-# THE WARFARE — Interface Contract v0.2
+# THE WARFARE — Interface Contract v0.3
 **Owner:** Integration Lead / Build Engineer (Agent #13)
 **Status:** DRAFT — revised per PM review of v0.1 (see Changelog)
 **Source of truth:** `GDD_The_Warfare_v0.0.2.md` — **CONFIRMED by PM** as correct source (v0.0.1 superseded, no revision needed).
@@ -7,7 +7,8 @@
 ---
 
 ## Changelog
-- **v0.2 (this revision):**
+- **v0.3 (this revision):** §2 "Frontline derived vs stored" OPEN QUESTION resolved by PM: DERIVED, recomputed each tick, cached read-only in `GameState.frontlines` (not authoritative).
+- **v0.2:**
   1. `Unit.state` now includes `"withdrawing"` as distinct from `"retreating"` (GDD §6.3, §15.2, §21 — LOCKED). Note: PM's review cited "§32.5"; the GDD only goes to §22, so the actual locked reference is §6.3/§15.2/§21 — substance unchanged, citation corrected.
   2. Added clarifying paragraph to §3.6: insurgents are an abstract aggregate (`unitCount`/`effectivePower`), not individual `Unit` entities.
   3. Added provisional `VisibilityEntry` schema (§3.7.1) for Intelligence reveal-state, status NEEDS CONFIRMATION.
@@ -35,7 +36,7 @@ GameState = {
   regions: Map<RegionId, Region>,
   units: Map<UnitId, Unit>,
   movementOrders: Map<OrderId, MovementOrder>,
-  frontlines: Frontline[],         // DERIVED/COMPUTED each tick, not authored data — see §3
+  frontlines: Frontline[],         // DERIVED, read-only cache recomputed each tick — see §2 RESOLVED and §3.5
   players: {
     player: FactionState,
     enemy: FactionState
@@ -48,7 +49,7 @@ GameState = {
 }
 ```
 
-**OPEN QUESTION (MEDIUM ambiguity) → PM/Architect:** Should `frontlines` be persisted state or purely recomputed from `regions` adjacency each tick? GDD §2 implies it's fully derived ("emerge and dissolve automatically"). This contract assumes **derived, not stored** — flag if wrong, since it affects whether Combat module owns a data store or a pure function.
+**RESOLVED (PM decision):** `frontlines` is **DERIVED** — recomputed from `regions` adjacency every tick, per GDD §2 ("emerge and dissolve automatically"). `GameState.frontlines` holds a **read-only cache** of that computation, refreshed each tick; it is **not** an authoritative source and must never be written to directly by any module other than the process that recomputes it. Combat module owns a pure recompute function, not a persistent frontline data store. Any module reading `GameState.frontlines` must treat it as a snapshot valid only for the current tick.
 
 ---
 
