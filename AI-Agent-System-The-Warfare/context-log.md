@@ -13,7 +13,7 @@
 - `evolution-log.md` — sudah berisi PRESEDEN-001 (approved final).
 - Task pertama yang berjalan: **PILOT-ECO-001** (lihat di bawah), domain Economy, status: **APPROVED FINAL oleh Human — CLOSED**.
 - **PRESEDEN-001** sudah tercatat di `evolution-log.md` — eskalasi berikutnya dengan pola serupa (konstanta baru dari Specialist + dugaan konflik lintas-domain) BISA diselesaikan PM sendiri, KECUALI konstanta barunya bersifat fondasional (dipakai lintas-banyak-section/domain) — kasus itu tetap wajib naik ke Human.
-- 2 item risk log terbuka (RISK-001, RISK-002) — ditunda, akan diaktifkan saat domain AI Behavior / Development Systems mulai dikerjakan.
+- Task berjalan sekarang: **PILOT-ECO-002** (terkait RISK-002) — cost basis Development Systems Civil/Government, ditugaskan ke Economy Specialist, status: menunggu hasil. Ditandai PM sebagai **bukan task rutin murni** (lihat cek awal di entry task).
 - **PROSES-001** aktif di `evolution-log.md` (bukan preseden per-kasus, tapi aturan proses tetap) — PM wajib: (a) tidak minta approval berdasarkan ringkasan sendiri untuk item Medium/High risk, selalu tampilkan teks persis; (b) stress-test setiap preseden baru sebelum diajukan approve; (c) sertakan dokumen sumber lengkap (bukan kutipan) di setiap brief Specialist; (d) cek baris lain di Summary yang mungkin ikut usang saat merevisi.
 
 ---
@@ -60,7 +60,24 @@ Specialist sendiri menandai dua titik curiga:
 
 ---
 
-## Risk Log (dibuka dari keputusan Human, PILOT-ECO-001, 17 Sep 2026)
+---
+
+### Task ID: PILOT-ECO-002
+
+| Field | Isi |
+|---|---|
+| **Domain** | Economy (cost basis Development Systems) |
+| **Terkait** | RISK-002 (dibuka saat PILOT-ECO-001) |
+| **Section GDD terkait** | Section 4.1 (Civil Development), Section 4.2 (Government Development) |
+| **Section Numeric Balancing terkait** | Section 1 (termasuk A1: Regional Base Output — sudah ada, dipakai bukan diciptakan ulang) |
+| **Cek awal PM (sebelum brief)** | ⚠️ **BUKAN task rutin murni.** Berbeda dari PILOT-ECO-001, Civil/Government buildings (6 jenis) belum punya relative scale maupun absolute cost sama sekali. Specialist harus menciptakan relative scale baru dari nol, bukan cuma konversi skala yang sudah ada. Stress-test PROSES-001 poin 2 diterapkan: task ini technically bisa diklaim "cuma pakai A1 yang sudah DRAFT" (lolos syarat literal PRESEDEN-001), tapi substansinya keputusan desain baru — maka **tetap diteruskan lewat jalur Verificator normal, tidak diperlakukan sebagai otomatis rutin**. |
+| **Dikirim ke** | Economy Specialist AI |
+| **Brief** | `brief-PILOT-ECO-002.md` |
+| **Tanggal ditugaskan** | 17 September 2026 |
+| **Status saat ini** | 🟡 Menunggu hasil dari Economy Specialist AI |
+| **Self-check checklist (diisi Specialist saat submit hasil)** | ☐ Nilai konsisten dengan A1 (tidak diubah) <br> ☐ Rasional relative scale baru dijelaskan eksplisit <br> ☐ Tidak menyentuh item LOCKED/FUTURE <br> ☐ Flag eksplisit: apakah ada asumsi baru yang berpotensi fondasional lintas-domain? <br> ☐ Format output sesuai brief tugas |
+| **Hasil Verificator** | — (belum) |
+| **Keputusan Human** | — (belum) |
 
 | ID | Deskripsi | Sumber | Status | Aksi |
 |---|---|---|---|---|
@@ -83,3 +100,4 @@ Specialist sendiri menandai dua titik curiga:
 - 17 Sep 2026 — Update: hasil eskalasi Verificator AI dicatat; cek preseden evolution-log.md (kosong, tidak ada preseden); 2 pertanyaan keputusan diajukan ke Human.
 - 17 Sep 2026 — **PILOT-ECO-001 APPROVED FINAL oleh Human — CLOSED.** Summary direvisi agar konsisten dengan klausa fondasional PRESEDEN-001.
 - 17 Sep 2026 — **PROSES-001** ditambahkan ke `evolution-log.md`; Summary diperbarui untuk mencantumkan kewajiban proses baru ini.
+- 17 Sep 2026 — Task **PILOT-ECO-002** dibuka (terkait RISK-002), ditugaskan ke Economy Specialist AI. PM menandai ini bukan task rutin murni per stress-test PROSES-001 poin 2 — tetap lewat jalur Verificator normal.
