@@ -1,5 +1,5 @@
 # THE WARFARE
-## Numeric Balancing Draft — v0.1
+## Numeric Balancing Draft — v0.2
 
 **Companion document to:** `GDD_The_Warfare_v0.0.2.md`
 **Status:** DRAFT / PROPOSED — approved for internal playtest, NOT permanent-final.
@@ -27,6 +27,20 @@
   - At Corruption = 100 → -0.5%/day.
 - **Natural decay rate (base, Anti-corruption Policy level 0):** -0.2 Corruption points/day.
 - **With Anti-corruption Policy level 4 (3.0x multiplier):** -0.6 Corruption points/day.
+
+### 1.3 Regional Base Economic Output
+
+| Parameter | Value | Status |
+|---|---|---|
+| Regional Base Output | 20 Money/hari/region | **DRAFT** (diadopsi 17 Sep 2026, belum playtest) |
+
+**Rasional:** Diturunkan Economy Specialist AI sebagai basis konversi skala relatif Section 5 (AD=1.0 dst.) menjadi nilai Money absolut, karena GDD/Numeric Balancing sebelumnya tidak punya angka income-rate dasar per region. Nilai ini dipakai bersama tax tier Section 1.1 untuk menghitung berapa hari pendapatan dibutuhkan untuk tiap unit produksi.
+
+**Catatan status:** DRAFT — bukan LOCKED. Bisa direvisi berdasarkan data playtest, sama seperti item-item lain di dokumen ini.
+
+**Risiko terbuka terkait (dicatat di context-log.md sebagai RISK-001 & RISK-002, tidak menghalangi adopsi DRAFT ini):**
+1. Interaksi dengan Economic AI threshold Section 9.3 — perlu review AI-Behavior Specialist saat domain itu dikerjakan.
+2. Development Systems (Section 4.1/4.2) belum punya cost basis sendiri — akan memakai skala Money yang sama, perlu diselesaikan saat task Development Systems Economy dibuka.
 
 ---
 
@@ -124,7 +138,7 @@ Drift = 0 exactly at 50:50 (indefinite stalemate, per LOCKED behavior).
 
 ## 5. Production Costs & Durations (relative scale)
 
-**Scale basis:** AD (Barracks) cost = 1.0 base unit. All other units are proportional — actual absolute Money value (e.g. "1.0 unit = X currency") is still open, pending Economy income-rate balancing.
+**Scale basis:** AD (Barracks) cost = 1.0 base unit. All other units are proportional — actual absolute Money value (e.g. "1.0 unit = X currency") is still open, pending Economy income-rate balancing. See Section 1.3 for the Regional Base Output value used to anchor this conversion.
 
 | Unit | Money Cost (relative) | Oil Cost | Production Duration |
 |---|---|---|---|
@@ -198,6 +212,8 @@ Tank in Mountain/Forest: +2 additional days on top of base Mountain/Forest time 
 | "High" Money reserve (lower tax) | > 150% of rolling 30-day average expenditure |
 | Support emergency brake (hard override) | Triggered when AI-wide average Regional Support < 10% |
 
+**Open dependency:** Interaction between this threshold and the new Regional Base Output (Section 1.3) is not yet reviewed — flagged as RISK-001, pending AI-Behavior Specialist review when this domain is worked on.
+
 ---
 
 ## 10. Player Oil Arbitration (new rule this session)
@@ -228,6 +244,7 @@ No window exists where two regions are simultaneously Capital, or where no regio
 | Version | Date/Session | Changes |
 |---|---|---|
 | v0.1 | This session | Initial compilation of all 14 numeric balancing register items from GDD Section 22 Appendix. All values DRAFT, pending playtest. |
+| v0.2 | 17 September 2026 | Merged Addendum PILOT-ECO-001 (Economy domain): added new Section 1.3 "Regional Base Economic Output" (20 Money/hari/region, DRAFT, human-approved 17 Sep 2026). Cross-referenced from Section 5 (Production Costs) and Section 9.3 (Economic AI). Open risks RISK-001 (interaction with Economic AI threshold, Section 9.3) and RISK-002 (Development Systems Section 4.1/4.2 lacking own cost basis) carried over from context-log.md; do not block DRAFT adoption. |
 
 ---
 
@@ -237,7 +254,9 @@ No window exists where two regions are simultaneously Capital, or where no regio
 2. **Oil scarcity** — 3 concurrent consumers (Strike/Transport/Production) against a hard 4-Derrick cap; monitor whether Production is perpetually starved.
 3. **Military building destructibility by Insurgency (Section 3.4)** — new rule this session; monitor late-game punishment severity, since Military buildings do not auto-rebuild.
 4. **Combat ↔ AI Behavior dependency** — tightly coupled; a bug in one surfaces immediately in the other during integration testing.
+5. **Regional Base Output interaction with Economic AI (Section 1.3 ↔ 9.3)** — RISK-001, pending AI-Behavior Specialist review.
+6. **Development Systems cost basis undefined (Section 1.3 note)** — RISK-002, to be resolved when Development Systems Economy task is opened.
 
 ---
 
-*End of Numeric Balancing Draft v0.1. Status: DRAFT — for internal playtest use, subject to revision.*
+*End of Numeric Balancing Draft v0.2. Status: DRAFT — for internal playtest use, subject to revision.*
