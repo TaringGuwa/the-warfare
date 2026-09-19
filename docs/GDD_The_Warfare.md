@@ -1,13 +1,35 @@
 # THE WARFARE
-## Game Design Document — v0.0.2
+## Game Design Document — v0.0.4
 
 **Status:** Behavior-complete + Numeric Balancing Draft complete (see companion document). Ready for full development execution.
 
-**Supersedes:** `GDD_The_Warfare_v0.0.1.md`
+**Supersedes:** v0.0.3 (nama file tidak lagi memuat nomor versi; versi dan riwayatnya hanya dicatat di dalam file ini)
 
-**Companion document:** `The_Warfare_Numeric_Balancing_Draft_v0.1.md` — contains all numeric values for constants marked `DRAFT` in this document. Values there are playtest-ready but not permanent-final.
+**Companion document:** `The_Warfare_Numeric_Balancing_Draft.md` — contains all numeric values for constants marked `DRAFT` in this document. Values there are playtest-ready but not permanent-final.
 
-**How to read this document:** Every rule is either `LOCKED` (finalized behavior), `DRAFT` (behavior locked, numeric value proposed and approved for playtest — see companion doc for the value), or `FUTURE` (not implemented in this version). This version resolves all items that were `UNSETTLED` in v0.0.1 by either locking new behavior (Section 23 — Changelog) or assigning DRAFT numeric values (companion document).
+**Dependency check:** terakhir dicek terhadap `The_Warfare_Numeric_Balancing_Draft.md` v0.7 (19 September 2026). Kalau versi di header dokumen itu berbeda dari ini, anggap rujukan silang di sini perlu dicek ulang.
+
+**How to read this document:** Every rule is either `LOCKED` (finalized behavior), `DRAFT` (behavior locked, numeric value proposed and approved for playtest — see companion doc for the value), or `FUTURE` (not implemented in this version).
+
+---
+
+## CHANGELOG — v0.0.3 → v0.0.4 (19 September 2026)
+
+1. **Section 6.2 (Frontline Pressure) — DIREKONSILIASI (LOCKED):** Contoh lama "2 vs 1 → 52:48" bertentangan dengan rumus Power Ratio yang kini didefinisikan di companion document Section 4.0 (total power satu sisi dibagi total power kedua sisi). Diganti dengan rujukan ke rumus tersebut plus contoh ilustratif "2 AD vs 1 AD → 67:33". Disetujui human 19 Sep 2026.
+2. **Penamaan file — DIUBAH:** Nama file tidak lagi memuat nomor versi (`GDD_The_Warfare.md`, bukan `..._v0.0.3.md`). Versi hanya dicatat di dalam file (header + changelog), supaya file yang saling bergantung tidak membingungkan saat salah satunya belum diperbarui judulnya. Rujukan antar-dokumen di file ini ditulis tanpa versi; satu baris "Dependency check" di header mencatat versi pasangan yang terakhir dicek.
+
+---
+
+## CHANGELOG — v0.0.2 → v0.0.3 (Audit Gap, 19 September 2026)
+
+Hasil audit System Maker Advisor + tim AI-Agent (PM, World/Content Designer, Numerical Balance Specialist, Consistency & QA Critic) terhadap 6 temuan gap. Semua LOCKED, disetujui human eksplisit.
+
+1. **Section 19 (Map Layout) — DIBANGUN ULANG (LOCKED):** Referensi ke dokumen v0.0.1 yang ternyata tidak eksis diganti dengan tabel region, terrain, dan adjacency lengkap hasil rekonstruksi, divalidasi konsisten dengan Capital P6/E10 yang sudah ada.
+2. **Section 21 (Glossary) — DITAMBAH (RESOLVED):** Entry "AD (Angkatan Darat)" ditambahkan; sebelumnya dipakai tanpa definisi.
+3. **Section 4 (Development Systems) — CATATAN DITAMBAH (RESOLVED):** Batas "max 2 per tipe Military per map" dikonfirmasi disengaja (bottleneck strategis), bukan kesalahan penulisan.
+4. **Section 6.4 (Defensive Adjacency) — DIREKONSILIASI (LOCKED):** Deskripsi yang sebelumnya kontradiktif dengan companion document Section 4.1 disatukan — Defensive Adjacency kini eksplisit berupa modifier Attack Success% langsung, independen dari Power Ratio/Frontline Pressure.
+5. **Section 3.1 (Money) — DIBERSIHKAN (RESOLVED):** Frasa "policy development" (leftover teks lama, tidak match dengan Section 4.4 yang menyatakan Anti-corruption Policy tanpa biaya) dihapus.
+6. **Companion document Section 4.4 (baru) — Tank Terrain Power Penalty:** Angka "-80% power" dari Section 4.3 diregister resmi ke Numeric Balancing Draft (sebelumnya hilang dari register meski Section 22 mengklaim lengkap). Lihat companion document v0.3.
 
 ---
 
@@ -20,7 +42,7 @@ The following are **new or revised** decisions made during the PM-led Task Decom
 3. **Player Oil Arbitration — NEWLY SPECIFIED (LOCKED):** When Player orders within a single tick exceed available Oil, claims resolve in the same priority as AI: Air Strike > Transport > Production. Under-prioritized orders are blocked, not partially fulfilled. See Section 3.2 (updated) below.
 4. **Insurgency Facility Damage Scope — REVISED (LOCKED):** Unresolved insurgency can now damage and destroy **both Civil facilities AND Military buildings** in the infected region (previously scoped to Civil only in early discussion; now explicitly widened). Since Military buildings do not auto-rebuild, this raises the stakes of ignoring insurgency. See Section 12.5 (updated) below.
 5. **Platform decision — NEW (Technical, informational):** Project targets a web-based platform (HTML/CSS/JS), with `index.html` as the application entry point. This does not change any gameplay behavior; noted here for cross-team awareness.
-6. **All previously `UNSETTLED` numeric constants** (GDD v0.0.1 Section 22 Appendix) have been assigned DRAFT values through a structured balancing pass. See companion document `The_Warfare_Numeric_Balancing_Draft_v0.1.md` for the full register. This GDD no longer carries a "fully open" Appendix — Section 22 below is retained only to track which items are now DRAFT vs which (none, as of v0.0.2) remain fully open.
+6. **All previously `UNSETTLED` numeric constants** (GDD v0.0.1 Section 22 Appendix) have been assigned DRAFT values through a structured balancing pass. See companion document `The_Warfare_Numeric_Balancing_Draft.md` for the full register. This GDD no longer carries a "fully open" Appendix — Section 22 below is retained only to track which items are now DRAFT vs which (none, as of v0.0.2) remain fully open.
 
 ---
 
@@ -44,7 +66,7 @@ The following are **new or revised** decisions made during the PM-led Task Decom
 16. Global Support & Sanctions
 17. Victory, Defeat & Endgame
 18. Difficulty
-19. Map Layout (v0.0.1 Default Map)
+19. Map Layout (RECONSTRUCTED v0.0.3)
 20. Design Principles
 21. Glossary
 22. Numeric Constants Register (status only — see companion doc for values)
@@ -91,7 +113,7 @@ The following are **new or revised** decisions made during the PM-led Task Decom
 ### 3.1 Money
 - Generated through regional taxation; tax rate is adjustable per region by the Player (Enemy AI's tax model is global — see Section 15.3).
 - Higher tax rate → faster wealth generation, but faster Regional Support decline (Section 11.2). Exact tier boundaries/rates: DRAFT, see companion document Section 1.1.
-- Used for: military salaries, construction, training, military production, policy development.
+- Used for: military salaries, construction, training, military production.
 
 ### 3.2 Oil
 - Produced by **Oil Derrick** (max 4 per map; cannot be built in Urban regions; passive/automatic/continuous output once built — no toggle).
@@ -117,6 +139,8 @@ Three distinct categories with different purchase/rebuild models:
 | Purchase model | Bought once, auto-spreads from Capital outward | Bought once, auto-spreads from Capital outward | Bought repeatedly, manually, per location |
 | Instance limit | Max 1 per building type per region | Max 1 per terrain category per map (max 3 total) | Max 2 per building type per map (Intelligence Center: max 1; Oil Derrick: max 4) |
 | If destroyed | **Auto-rebuilt** — no repurchase needed | **Auto-rebuilt** — no repurchase needed | Must be **manually repurchased and rebuilt**; can relocate to a different region |
+
+**Catatan desain (v0.0.3, dikonfirmasi human 19 September 2026):** Batas "max 2 per tipe bangunan per map" untuk kategori Military (termasuk Barracks) **disengaja** sebagai bottleneck strategis — bukan kesalahan penulisan. Dengan hanya 2 Barracks untuk seluruh 15 region Player, kapasitas produksi AD sengaja dibuat terbatas agar keputusan lokasi & timing produksi jadi keputusan strategis, bukan sekadar scaling linear terhadap jumlah wilayah dikuasai.
 
 ### 4.1 Civil Development
 - Construction spreads automatically outward from the Capital once purchased; frontline regions have reduced construction speed; construction continues uninterrupted after a region changes hands.
@@ -175,7 +199,7 @@ Three distinct categories with different purchase/rebuild models:
 - Combat is never "higher power = automatic win." Equal forces (e.g. 1 AD vs 1 AD) start at a 50:50 ratio and can remain in stalemate indefinitely if neither side reinforces.
 
 ### 6.2 Frontline Pressure
-- Adding forces shifts the ratio (e.g. 2 vs 1 → 52:48 initial). Sustained superiority causes gradual pressure drift toward one side. Frontline Power Ratio, Frontline Pressure, and Attack Success Chance are three distinct, separate systems. Exact drift rate: DRAFT, see companion document Section 4.2.
+- Adding forces shifts the ratio according to the Power Ratio formula: total power of one side ÷ combined total power of both sides (see companion document Section 4.0). Example (illustrative): 2 AD vs 1 AD → 67:33 initial. Sustained superiority causes gradual pressure drift toward one side. Frontline Power Ratio, Frontline Pressure, and Attack Success Chance are three distinct, separate systems. Exact drift rate: DRAFT, see companion document Section 4.2.
 
 ### 6.3 Ground Offensive & Retreat
 - Attacks are not instant — an attack-in-progress notification appears, and the attacker may **Retreat** (pull back mid-attack) before it concludes. Failing to retreat from a failed attack risks losing/having forces captured (captured Tanks can be reused by the Enemy).
@@ -183,7 +207,8 @@ Three distinct categories with different purchase/rebuild models:
 - Exact Attack Success formula: DRAFT, see companion document Section 4.1.
 
 ### 6.4 Defensive Adjacency
-- Each friendly adjacent region provides **+5% defensive effectiveness** (not raw power) — e.g. base 100 + 2 friendly adjacent regions = 110 effective defense. Terrain affects adjacency's strategic value: City = low, Rural = medium, Mountain/Forest = high.
+- Each friendly adjacent region reduces the attacker's Attack Success Chance by 5 percentage points, applied as a direct modifier to Attack Success% (see companion document Section 4.1) — independent of Power Ratio and Frontline Pressure, consistent with the three-separate-systems principle (Section 6.2). Terrain affects adjacency's strategic value: City = low, Rural = medium, Mountain/Forest = high.
+- **[v0.0.3, dikonfirmasi human]** Sebelumnya deskripsi ini kontradiktif dengan companion document Section 4.1 (yang sudah memformulasikannya sebagai modifier Success% langsung, bukan penambah "effective defense"). Direkonsiliasi ke satu mekanisme: modifier Success% langsung.
 
 ---
 
@@ -426,9 +451,71 @@ Player loses if **any** of:
 
 ---
 
-## 19. Map Layout (v0.0.1 Default Map — unchanged in v0.0.2)
+## 19. Map Layout — RECONSTRUCTED v0.0.3 (LOCKED, disetujui human 19 September 2026)
 
-**Total: 30 regions** — 15 Player, 15 Enemy. Structure: 3×5 grid per side, 3 frontlines at start (one per row). See original v0.0.1 document Section 19 for the full region table, adjacency rules, and Capital placement (P6 / E10) — unchanged in this revision.
+**Total: 30 regions** — 15 Player, 15 Enemy. Structure: 3×5 grid per side, 3 frontlines at start (one per row).
+
+**Catatan versi:** Dokumen v0.0.1 yang sebelumnya dirujuk sebagai sumber tabel region lengkap ternyata tidak eksis/tidak tersimpan (dikonfirmasi human, audit 19 Sep 2026). Layout di bawah ini **dibangun ulang**, bukan disalin — divalidasi konsisten dengan Capital placement (P6/E10) yang sudah ada di versi sebelumnya.
+
+### 19.1 Struktur Grid
+
+- Kolom Player: 1 (belakang, dekat home) → 5 (depan, berbatasan Enemy).
+- Kolom Enemy: 1 (depan, berbatasan Player) → 5 (belakang, dekat home) — cermin dari Player.
+- Frontline hanya terbentuk di titik temu kolom terdepan tiap lane (lihat 19.3).
+
+### 19.2 Tabel Region & Terrain
+
+| Region | Lane | Kolom (jarak dari frontline) | Terrain | Catatan |
+|---|---|---|---|---|
+| P1 | 1 | 1 (belakang) | Rural | |
+| P2 | 1 | 2 | Rural | |
+| P3 | 1 | 3 | Mountain/Forest | |
+| P4 | 1 | 4 | Rural | |
+| P5 | 1 | 5 (depan) | Urban | Frontline vs E1 |
+| P6 | 2 | 1 (belakang) | Urban | **Capital** |
+| P7 | 2 | 2 | Rural | |
+| P8 | 2 | 3 | Rural | |
+| P9 | 2 | 4 | Mountain/Forest | |
+| P10 | 2 | 5 (depan) | Rural | Frontline vs E6 |
+| P11 | 3 | 1 (belakang) | Rural | |
+| P12 | 3 | 2 | Mountain/Forest | |
+| P13 | 3 | 3 | Rural | |
+| P14 | 3 | 4 | Rural | |
+| P15 | 3 | 5 (depan) | Urban | Frontline vs E11 |
+| E1 | 1 | 1 (depan) | Urban | Frontline vs P5 |
+| E2 | 1 | 2 | Rural | |
+| E3 | 1 | 3 | Mountain/Forest | |
+| E4 | 1 | 4 | Rural | |
+| E5 | 1 | 5 (belakang) | Rural | |
+| E6 | 2 | 1 (depan) | Rural | Frontline vs P10 |
+| E7 | 2 | 2 | Mountain/Forest | |
+| E8 | 2 | 3 | Rural | |
+| E9 | 2 | 4 | Rural | |
+| E10 | 2 | 5 (belakang) | Urban | **Capital** |
+| E11 | 3 | 1 (depan) | Urban | Frontline vs P15 |
+| E12 | 3 | 2 | Rural | |
+| E13 | 3 | 3 | Rural | |
+| E14 | 3 | 4 | Mountain/Forest | |
+| E15 | 3 | 5 (belakang) | Rural | |
+
+**Distribusi terrain per sisi:** 9 Rural (60%) / 3 Mountain-Forest / 3 Urban — Rural-dominant, semua terrain terwakili (sesuai Section 18, Difficulty Medium).
+
+### 19.3 Adjacency Rules
+
+1. **Dalam satu lane** (kolom berurutan): P1–P2–P3–P4–P5; P6–P7–P8–P9–P10; P11–P12–P13–P14–P15. Sama untuk E1–E5, E6–E10, E11–E15.
+2. **Antar-lane, kolom sama** (jalur lateral): P1–P6–P11; P2–P7–P12; P3–P8–P13; P4–P9–P14; P5–P10–P15. Pola sama untuk sisi Enemy.
+3. **Lintas sisi (frontline)** — HANYA 3 titik ini menghubungkan Player↔Enemy di awal game: P5↔E1, P10↔E6, P15↔E11.
+4. Tidak ada koneksi lintas-sisi lain — konsisten dengan "movement through Enemy territory not allowed" (Section 5.3).
+
+### 19.4 Verifikasi terhadap Constraint Asli
+
+| Requirement asli | Status |
+|---|---|
+| 30 region, 15 Player / 15 Enemy | PASS |
+| 3×5 grid per sisi | PASS |
+| 3 frontline saat start, satu per row | PASS |
+| Capital di P6 dan E10 | PASS |
+| Difficulty Medium: semua terrain ada, Rural-dominant | PASS |
 
 ---
 
@@ -443,6 +530,7 @@ Player loses if **any** of:
 
 ## 21. Glossary
 
+- **AD (Angkatan Darat)** — unit infanteri darat dasar, diproduksi di Barracks (Section 4.3). Istilah dipinjam dari nomenklatur militer Indonesia (harfiah: "Angkatan Darat"/Army), dipakai sebagai nama unit gameplay — bukan merujuk institusi militer sungguhan mana pun. *(ditambahkan v0.0.3, dikonfirmasi human)*
 - **Retreat** — an **attacker** pulling back forces mid-attack.
 - **Withdraw** — **defending** forces pulling back before/during being attacked, to save troops.
 - **Abandon** — a deliberate upfront decision not to contest a region at all.
@@ -457,11 +545,13 @@ Player loses if **any** of:
 
 ## 22. Numeric Constants Register (status tracking only)
 
-All constants formerly marked `UNSETTLED` in v0.0.1 Appendix now have DRAFT values assigned. See `The_Warfare_Numeric_Balancing_Draft_v0.1.md` for the complete register (14 items) with values and rationale. No numeric constant remains fully unassigned as of v0.0.2.
+All constants formerly marked `UNSETTLED` in v0.0.1 Appendix now have DRAFT values assigned. See `The_Warfare_Numeric_Balancing_Draft.md` for the complete register with values and rationale.
+
+**Koreksi v0.0.3 (audit 19 Sep 2026):** Klaim sebelumnya ("14 items, no numeric constant remains fully unassigned") tidak akurat — Tank Mountain/Forest power penalty (-80%, Section 4.3) sempat lolos dari register. Sudah diregister sebagai item ke-15 (companion document Section 4.4).
 
 **Future/deferred concepts (unchanged, do not implement):**
 - Facility branching, Military-civil integration/training, Supply Line concept, Transit Combat, Global Support sanctions mirrored for Enemy, Insurgency/conquest-speed-based Global Support triggers, alternative victory conditions, endgame replay feature, Easy/Hard-tier map layouts, per-region adaptive Tax Rate for Enemy AI, Anti-corruption Policy cost mechanic.
 
 ---
 
-*End of v0.0.2 GDD. See `The_Warfare_Numeric_Balancing_Draft_v0.1.md` for full numeric values. See `the_warfare_concept_v0.0.8.md` for discussion history behind v0.0.1 decisions.*
+*End of GDD v0.0.4. See `The_Warfare_Numeric_Balancing_Draft.md` for full numeric values. See `the_warfare_concept.md` (versi terakhir v0.0.8) for discussion history behind v0.0.1 decisions (catatan: konten concept doc sudah terserap penuh ke GDD ini, dikonfirmasi human).*
